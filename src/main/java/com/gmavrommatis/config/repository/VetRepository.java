@@ -3,6 +3,7 @@ package com.gmavrommatis.config.repository;
 import com.gmavrommatis.config.domain.Vet;
 import io.micronaut.data.annotation.Query;
 import io.micronaut.data.annotation.Repository;
+import io.micronaut.data.jpa.annotation.EntityGraph;
 import io.micronaut.data.jpa.repository.JpaRepository;
 import io.micronaut.data.model.Page;
 import io.micronaut.data.model.Pageable;
@@ -18,21 +19,34 @@ import java.util.Optional;
 public interface VetRepository extends JpaRepository<Vet, Long> {
 
   /**
-   * Retrieves a paginated list of all {@link Vet} entities.
+   * Retrieves a paginated list of all {@link Vet} entities with their associated {@link Specialty
+   * specialties} eagerly fetched.
    *
-   * <p>Implemented automatically by Spring Data JPA to execute a query equivalent to:
+   * <p>This method overrides the default {@code findAll(Pageable)} implementation to eliminate the
+   * typical N+1 select problem associated with lazily loaded collections. By applying a JPA {@link
+   * EntityGraph} with {@code attributePaths = "specialties"}, Hibernate performs a single
+   * fetch-join–like query to retrieve each {@code Vet} together with its specialties in one
+   * round-trip to the database.
    *
-   * <pre>
-   * SELECT * FROM vets
-   * LIMIT :#{#pageable.pageSize}
-   * OFFSET :#{#pageable.pageNumber} * :#{#pageable.pageSize}
-   * </pre>
+   * <p>The result page still includes the default count query used for pagination, but the content
+   * query will fetch the {@code specialties} association eagerly.
    *
-   * @param pageable pagination parameters including page index (zero-based) and page size
-   * @return a {@link Page} of {@code Vet} entities for the requested page
+   * @param pageable the pagination information, including page index and page size
+   * @return a {@link Page} containing veterinarians and their eagerly loaded specialties
    */
   @Override
+  @EntityGraph(attributePaths = "specialties")
   Page<Vet> findAll(Pageable pageable);
+
+  /**
+   * Explicit lazy variant that returns Vet entities without fetching specialties. The specialties
+   * collection remains LAZY and won't be loaded until accessed.
+   *
+   * <p>NOTE: we use @Query to stop Spring Data from trying to parse the method name. Also provide
+   * countQuery for pagination correctness.
+   */
+  @Query(value = "select v from Vet v", countQuery = "select count(v) from Vet v")
+  Page<Vet> findAllLazy(Pageable pageable);
 
   /**
    * Deletes all veterinarians matching the given first and last name.

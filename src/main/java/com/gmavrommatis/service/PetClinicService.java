@@ -46,8 +46,14 @@ public class PetClinicService {
    *     </ul>
    */
   @Transactional(readOnly = true)
-  public PetClinicResponse getPetClinicDetails(Pageable from) {
-    Page<Vet> vetsPage = vetService.findAllPageable(from);
+  public PetClinicResponse getPetClinicDetailsEagerly(Pageable from) {
+    Page<Vet> vetsPage = vetService.findAllPageableEagerly(from);
+    return vetToPetClinicResponseMapper.toDetailedResponsePageable(vetsPage);
+  }
+
+  @Transactional(readOnly = true)
+  public PetClinicResponse getPetClinicDetailsLazily(Pageable from) {
+    Page<Vet> vetsPage = vetService.findAllPageableLazily(from);
     return vetToPetClinicResponseMapper.toDetailedResponsePageable(vetsPage);
   }
 }

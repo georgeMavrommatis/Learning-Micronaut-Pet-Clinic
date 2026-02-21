@@ -33,9 +33,15 @@ public class PetClinicController {
    * @param size the number of items per page (defaults to 10 if not specified)
    * @return an {@code HttpResponse} containing the {@link PetClinicResponse} for the requested page
    */
-  @Get("/details")
-  public HttpResponse<PetClinicResponse> petClinicDetails(
+  @Get("/detailsEagerly")
+  public HttpResponse<PetClinicResponse> petClinicDetailsEager(
       @QueryValue(defaultValue = "0") int page, @QueryValue(defaultValue = "10") int size) {
-    return HttpResponse.ok(petClinicService.getPetClinicDetails(Pageable.from(page, size)));
+    return HttpResponse.ok(petClinicService.getPetClinicDetailsEagerly(Pageable.from(page, size)));
+  }
+
+  @Get("/detailsLazily")
+  public HttpResponse<PetClinicResponse> petClinicDetailsLazy(
+      @QueryValue(defaultValue = "0") int page, @QueryValue(defaultValue = "10") int size) {
+    return HttpResponse.ok(petClinicService.getPetClinicDetailsLazily(Pageable.from(page, size)));
   }
 }

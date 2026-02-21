@@ -42,8 +42,13 @@ public class VetService {
    * @return a {@link Page} of all {@link Vet} entities
    */
   @Transactional(readOnly = true)
-  public Page<Vet> findAllPageable(Pageable from) {
+  public Page<Vet> findAllPageableEagerly(Pageable from) {
     return vetRepository.findAll(from);
+  }
+
+  @Transactional(readOnly = true)
+  public Page<Vet> findAllPageableLazily(Pageable from) {
+    return vetRepository.findAllLazy(from);
   }
 
   /**
@@ -73,14 +78,9 @@ public class VetService {
         Vet.builder().firstName(request.getFirstName()).lastName(request.getLastName()).build();
 
     // 2. Load each Specialty by ID and add it to the Vet
-    Set<Specialty> specs = new HashSet<>();
-    for (String specialtyName : request.getSpecialties()) {
-      Specialty s =
-          specialtyRepository
-              .findByName(specialtyName)
-              .orElseThrow(
-                  () -> new NoSuchElementException("Specialty not found: " + specialtyName));
-      specs.add(s);
+    Set<Specialty> specs = specialtyRepository.findByNameIn(request.getSpecialties());
+    if (specs.containsAll(request.getSpecialties())) {
+      throw new NoSuchElementException("Some Specialties were not found: ");
     }
     vet.setSpecialties(specs);
 
