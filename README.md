@@ -1,43 +1,19 @@
-## Micronaut 4.8.3 Documentation
+## Micronaut 4.10.2 Documentation
 
-- [User Guide](https://docs.micronaut.io/4.8.3/guide/index.html)
-- [API Reference](https://docs.micronaut.io/4.8.3/api/index.html)
-- [Configuration Reference](https://docs.micronaut.io/4.8.3/guide/configurationreference.html)
+- [User Guide](https://docs.micronaut.io/4.10.2/guide/index.html)
+- [API Reference](https://docs.micronaut.io/4.10.2/api/index.html)
+- [Configuration Reference](https://docs.micronaut.io/4.10.2/guide/configurationreference.html)
 - [Micronaut Guides](https://guides.micronaut.io/index.html)
 ---
 
-- [Micronaut Maven Plugin documentation](https://micronaut-projects.github.io/micronaut-maven-plugin/latest/)
-## Feature micronaut-aot documentation
 
-- [Micronaut AOT documentation](https://micronaut-projects.github.io/micronaut-aot/latest/guide/)
+## Author & Learning Resources
 
+This repository is part of a broader learning journey around **Micronaut and production-grade microservices architecture**.
 
-## Feature serialization-jackson documentation
-
-- [Micronaut Serialization Jackson Core documentation](https://micronaut-projects.github.io/micronaut-serialization/latest/guide/)
+- 🎓 [**Udemy Course**](https://www.udemy.com/course/draft/6917311/?referralCode=15BE3C580D2C7F8CC0FE)
 
 
-## Feature maven-enforcer-plugin documentation
+- 💼 [**LinkedIn**](https://www.linkedin.com/in/george-mavrommatis-0988121b6/)
 
-- [https://maven.apache.org/enforcer/maven-enforcer-plugin/](https://maven.apache.org/enforcer/maven-enforcer-plugin/)
-
-## Windows port process cleanup
-
-- #netstat -aon | findstr :8080
-- #taskkill /PID 12345 /F
-
-## Windows port process cleanup
-- how to exec the db, commands
--  1- jpa+persistence api single postgress
-  - - add httpresponse instead
-  - - add/delete/update vet
-  - - add/delete/update specialty
-  - - how jpa handles intermediate table
--   -   add jakarta validations -> custom annotation for validating createVet with specialty, that specialty exists.
--   -   add javadoc
--  2- jpa+persistence api with entity manager for custom queries single postgress
--  3- jpa+persistence api with entity manager for custom queries and usage of multiple db postgress configurtion
--  4- Micronaut Data JDBC (Compile-Time ORM)
--  5- Micronaut Data R2DBC (Reactive)
-
-
+The code and examples here focus on architecture-first design, real-world trade-offs, and production considerations.
