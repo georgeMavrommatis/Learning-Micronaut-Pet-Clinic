@@ -8,11 +8,15 @@
         </encoder>
     </appender>
 
-
-    <logger name="io.micronaut.http.server" level="DEBUG"/>
+    <logger name="io.micronaut.security.oauth2" level="TRACE"/>
+    <logger name="io.micronaut.security.oauth2.client" level="TRACE"/>
+    <logger name="io.micronaut.security.oauth2.endpoint.token.request.password" level="TRACE"/>
+    <logger name="io.micronaut.http.server" level="TRACE"/>
     <logger name="io.micronaut.security" level="TRACE"/>
     <logger name="io.micronaut.security.filters.SecurityFilter" level="TRACE"/>
     <logger name="io.micronaut.security.rules" level="TRACE"/>
+    <logger name="io.micronaut.http.client" level="TRACE"/>
+    <logger name="io.micronaut.context.condition" level="TRACE"/> <!-- shows which beans are created/disabled -->
 
     <root level="info">
         <appender-ref ref="STDOUT" />

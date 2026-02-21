@@ -1,0 +1,81 @@
+{
+  "realm": "pet-clinic",
+  "enabled": true,
+
+
+  "offlineSessionIdleTimeout": 2592000,
+  "offlineSessionMaxLifespanEnabled": true,
+  "offlineSessionMaxLifespan": 5184000,
+
+  "clients": [
+    {
+      "clientId": "pet-clinic",
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "petclinic-secret",
+
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": false,
+      "consentRequired": false,
+      "fullScopeAllowed": true,
+
+      "redirectUris": [
+        "http://127.0.0.1:8080/oauth/callback/keycloak",
+        "http://localhost:8080/oauth/callback/keycloak"
+      ],
+      "webOrigins": [
+        "http://localhost:8080/pet-clinic/details"
+      ],
+
+      "defaultClientScopes": [
+        "web-origins",
+        "role_list",
+        "profile",
+        "email",
+        "roles",
+        "offline_access"
+      ],
+      "optionalClientScopes": [
+        "address",
+        "phone",
+        "microprofile-jwt"
+      ],
+
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "backchannel.logout.session.required": "true",
+        "post.logout.redirect.uris": "http://localhost:8080/*"
+      }
+    }
+  ],
+
+  "users": [
+    {
+      "username": "alice",
+      "firstName": "Alice",
+      "lastName": "Smith",
+      "email": "alice@example.com",
+      "emailVerified": true,
+      "enabled": true,
+      "realmRoles": ["offline_access", "ADMIN"],
+      "requiredActions": [],
+      "credentials": [
+        { "type": "password", "value": "alice@1", "temporary": false }
+      ]
+    },
+    {
+      "username": "bob",
+      "firstName": "BOB",
+      "lastName": "Like",
+      "email": "bob@example.com",
+      "emailVerified": true,
+      "enabled": true,
+      "realmRoles": ["offline_access", "VIEW"],
+      "requiredActions": [],
+      "credentials": [
+        { "type": "password", "value": "bob@2", "temporary": false }
+      ]
+    }
+  ]
+}

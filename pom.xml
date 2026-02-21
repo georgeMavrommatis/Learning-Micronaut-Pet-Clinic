@@ -13,7 +13,7 @@
     <version>4.10.2</version>
   </parent>
 
-  <!--Necessary for Centralized version alignment, enforcing versions from micronaut-platform BOM-->
+  <!--Necessary for Centralized version alignment-->
   <dependencyManagement>
     <dependencies>
       <dependency>
@@ -40,7 +40,6 @@
 
 
   <repositories>
-    <!-- A repository entry tells Maven where to look for dependency artifacts. -->
     <repository>
       <id>central</id>
       <url>https://repo.maven.apache.org/maven2</url>
@@ -131,34 +130,6 @@
       <scope>compile</scope>
     </dependency>
 
-    <!-- Micronaut WebSocket dependency,
-    provides support for building WebSocket clients and servers in a Micronaut application.
-    provides the classes and annotations for WebSocket endpoints (@ServerWebSocket, @OnMessage, etc.).-->
-    <dependency>
-      <groupId>io.micronaut</groupId>
-      <artifactId>micronaut-websocket</artifactId>
-    </dependency>
-
-
-    <!--The core Security Engine.
-        Includes:
-            Authentication & authorization infrastructure.
-            Security filters
-            Login / logout mechanisms
-            Support hooks for:
-              JWT
-              Session auth
-              OAuth2
-              Custom auth providers
-            AuthenticationProvider SPI
-        By itself, it knows how to secure requests, but not where or how auth state is stored.
-    -->
-    <dependency>
-      <groupId>io.micronaut.security</groupId>
-      <artifactId>micronaut-security</artifactId>
-      <scope>compile</scope>
-    </dependency>
-
     <!--JWT (JSON Web Token) support into Micronaut Security
         Accept Authorization: Bearer <token> headers
         Validate JWTs (signature, expiration, claims)
@@ -168,6 +139,32 @@
       <groupId>io.micronaut.security</groupId>
       <artifactId>micronaut-security-jwt</artifactId>
       <scope>compile</scope>
+    </dependency>
+
+    <!--OAuth 2.0 client support
+        App can act as an OAuth2 client and:
+
+        Redirect users to an external IdP
+        Handle authorization-code flow
+        Exchange code → tokens
+        Store authentication in Micronaut Security context
+        Works with:
+          Keycloak
+          Auth0
+          Okta
+          Azure AD
+          etc...-->
+    <dependency>
+      <groupId>io.micronaut.security</groupId>
+      <artifactId>micronaut-security-oauth2</artifactId>
+    </dependency>
+
+    <!-- Micronaut WebSocket dependency,
+   provides support for building WebSocket clients and servers in a Micronaut application.
+   provides the classes and annotations for WebSocket endpoints (@ServerWebSocket, @OnMessage, etc.).-->
+    <dependency>
+      <groupId>io.micronaut</groupId>
+      <artifactId>micronaut-websocket</artifactId>
     </dependency>
 
     <dependency>
@@ -214,15 +211,11 @@
       <artifactId>logback-classic</artifactId>
       <scope>runtime</scope>
     </dependency>
-
-    <!--Client for Testing-->
     <dependency>
       <groupId>io.micronaut</groupId>
       <artifactId>micronaut-http-client</artifactId>
-      <scope>test</scope>
+      <scope>compile</scope>
     </dependency>
-
-    <!--Testing-->
     <dependency>
       <groupId>io.micronaut.test</groupId>
       <artifactId>micronaut-test-junit5</artifactId>
@@ -239,8 +232,6 @@
           <configFile>aot-${packaging}.properties</configFile>
         </configuration>
       </plugin>
-      <!--enforces rules and fail the build if policy is violated
-      (wrong Java version, banned dependencies, mixed versions, missing plugin versions, etc.).-->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-enforcer-plugin</artifactId>
@@ -285,19 +276,9 @@
             </path>
 
             <!-- Annotation processor for Micronaut Data -->
-            <!-- Used at compile-time to generate repository implementations automatically.
-                 Processes annotations like @Repository, @Query, and entity mappings.
-                 Necessary for Micronaut Data to generate efficient, compile-time code
-                 for MongoDB or other supported databases. -->
             <path>
               <groupId>io.micronaut.data</groupId>
               <artifactId>micronaut-data-document-processor</artifactId>
-            </path>
-
-            <!-- Including this allows other parts of the build (like plugins) to reference the Micronaut WebSocket library -->
-            <path>
-              <groupId>io.micronaut</groupId>
-              <artifactId>micronaut-websocket</artifactId>
             </path>
 
             <path>
@@ -310,6 +291,11 @@
                   <artifactId>micronaut-inject</artifactId>
                 </exclusion>
               </exclusions>
+            </path>
+
+            <path>
+              <groupId>io.micronaut</groupId>
+              <artifactId>micronaut-websocket</artifactId>
             </path>
 
             <!-- 6) Any other APTs you need (e.g. Micronaut HTTP validation) -->

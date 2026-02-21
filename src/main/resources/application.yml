@@ -11,8 +11,9 @@ micronaut:
         ui:
           allowed-origins:
             - http://127.0.0.1:8000
-#          allowed-methods: [ GET, POST, PUT, PATCH, DELETE, OPTIONS ]
-#          allowed-headers: [ Content-Type, X-CSRF-TOKEN, Authorization ]
+            - http://127.0.0.1:8888
+          allowed-headers: [ Authorization, Content-Type ]
+          allowed-methods: [ GET, POST, PUT, PATCH, DELETE, OPTIONS ]
           allow-credentials: true
 
   security:
@@ -33,18 +34,23 @@ micronaut:
     token:
       jwt:
         #REFERENCE https://guides.micronaut.io/latest/micronaut-security-jwt-maven-java.html
+        enabled: true
         signatures:
-          secret:
-            generator:
-              secret: ${JWT_GENERATOR_SIGNATURE_SECRET:pleaseChangeThisSecretForANewOne}
-        generator:
-          refresh-token:
-            secret: pleaseChangeThisSecretForANewOne
-      generator:
-        access-token:
-          expiration: 1800 #Set expiration to 30 minutes
-
-
+          jwks:
+            keycloak:
+              url: http://localhost:8888/realms/pet-clinic/protocol/openid-connect/certs
+        cookie:
+          enabled: false
+    oauth2:
+      clients:
+        keycloak:
+          grant-type: password
+          client-id: pet-clinic
+          client-secret: petclinic-secret
+          token:
+            url: http://localhost:8888/realms/pet-clinic/protocol/openid-connect/token
+            auth-method: client_secret_post
+          scopes: [ openid, profile, email, offline_access ]
   data:
     r2dbc:
       dialect: POSTGRES
@@ -96,26 +102,3 @@ mongodb:
     # (Reactive driver no longer uses threadsAllowedToBlock…)
     maintenance-initial-delay: 0s
     maintenance-frequency: 5m
-
-identity-store:
-  users:
-    alice: alice@1
-    bob: bob@2
-    charlie: charlie@3
-  roles:
-    alice: ADMIN
-    bob: VIEW
-    charlie: VIEW
-  attributes:
-    alice:
-      email: alice@example.com
-      fullName: Alice Smith
-      department: Veterinary
-    bob:
-      email: bob@example.com
-      fullName: Bob Daniels
-      department: Customer
-    charlie:
-      email: charlie@example.com
-      fullName: Charlie Jones
-      department: Customer
