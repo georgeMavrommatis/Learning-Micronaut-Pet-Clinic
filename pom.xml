@@ -175,6 +175,19 @@
       <artifactId>micronaut-websocket</artifactId>
     </dependency>
 
+    <!-- Micronaut Kafka Provides:
+    Kafka Client Support
+    Annotation-Based Producers & Consumers
+    Automatic Serialization/Deserialization
+    Kafka Configuration Management
+    Kafka Reactive Support
+    Error Handling & Retry Logic
+    -->
+    <dependency>
+      <groupId>io.micronaut.kafka</groupId>
+      <artifactId>micronaut-kafka</artifactId>
+    </dependency>
+
     <dependency>
       <groupId>org.yaml</groupId>
       <artifactId>snakeyaml</artifactId>
@@ -329,10 +342,16 @@
               <artifactId>micronaut-websocket</artifactId>
             </path>
 
-            <!-- 6) Any other APTs you need (e.g. Micronaut HTTP validation) -->
+            <!-- (Micronaut HTTP validation) -->
             <path>
               <groupId>io.micronaut</groupId>
               <artifactId>micronaut-http-validation</artifactId>
+            </path>
+
+            <!-- Kafka compile time processing availability -->
+            <path>
+              <groupId>io.micronaut.kafka</groupId>
+              <artifactId>micronaut-kafka</artifactId>
             </path>
 
             <!-- Enable Micronaut’s annotation processors -->

@@ -12,7 +12,6 @@ micronaut:
           allowed-origins:
             - "http://127.0.0.1:8000"
             - "http://localhost:8000"
-
   openapi:
     views:
       #swagger-ui.enabled=true: Enables generation/serving of Swagger UI (the classic Swagger web-based UI).
@@ -46,13 +45,22 @@ micronaut:
     r2dbc:
       dialect: POSTGRES
 
+#Reference: https://micronaut-projects.github.io/micronaut-kafka/latest/guide/#kafkaQuickStart:~:text=Copy%20to%20Clipboard-,Configuring%20Kafka,-The%20minimum%20requirement
+kafka:
+  bootstrap:
+    servers: localhost:9092
+
 logger:
   levels:
-    org.mongodb.driver.connection: DEBUG
-    reactor.core.publisher: TRACE
+#    org.mongodb.driver.connection: DEBUG
+#    reactor.core.publisher: TRACE
 #    org.mongodb.driver.cluster: DEBUG
-    org.mongodb.driver.protocol.command: DEBUG
-    org.mongodb.driver.protocol.query: DEBUG
+#    org.mongodb.driver.protocol.command: DEBUG
+#    org.mongodb.driver.protocol.query: DEBUG
+#    org.apache.kafka: DEBUG
+    org.apache.kafka.clients.producer: DEBUG
+    org.apache.kafka.clients.consumer: DEBUG
+    io.micronaut.configuration.kafka: TRACE
 
 
 # Start the WebSocket server

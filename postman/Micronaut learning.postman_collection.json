@@ -1,10 +1,10 @@
 {
 	"info": {
-		"_postman_id": "638c63c7-6a26-4f9a-8ed2-a3b5851ecb9e",
+		"_postman_id": "745a6b04-1748-4bf3-81ad-f1c1ac6762c2",
 		"name": "Micronaut learning",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "11550685",
-		"_collection_link": "https://grey-comet-448886.postman.co/workspace/Generali~8cb4727b-c50c-4620-be93-298ac276c8f5/collection/11550685-638c63c7-6a26-4f9a-8ed2-a3b5851ecb9e?action=share&source=collection_link&creator=11550685"
+		"_collection_link": "https://grey-comet-448886.postman.co/workspace/Generali~8cb4727b-c50c-4620-be93-298ac276c8f5/collection/11550685-745a6b04-1748-4bf3-81ad-f1c1ac6762c2?source=collection_link"
 	},
 	"item": [
 		{
@@ -3691,6 +3691,28 @@
 					"name": "Vet",
 					"item": [
 						{
+							"name": "get vets Custom",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/vetCustom",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"vetCustom"
+									]
+								}
+							},
+							"response": []
+						},
+						{
 							"name": "get vets openapi server generator",
 							"request": {
 								"auth": {
@@ -3711,24 +3733,191 @@
 								}
 							},
 							"response": []
-						},
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "17-kafka-producer-consumer",
+			"item": [
+				{
+					"name": "save N Vet-Review randomly Copy 2",
+					"item": [
 						{
-							"name": "get vets Custom",
+							"name": "save N Vet-Review randomly",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// 1) random rating between 1.0 and 9.9 with one decimal\r",
+											"const rating = (Math.random() * 8.9 + 1.0).toFixed(1);\r",
+											"pm.variables.set(\"rating\", rating);\r",
+											"\r",
+											"// 2) random reviewer name\r",
+											"const reviewers = [\r",
+											"  \"Fred Doe\",\r",
+											"  \"Peter Prince\"\r",
+											"];\r",
+											"pm.variables.set(\r",
+											"  \"reviewer\",\r",
+											"  reviewers[Math.floor(Math.random() * reviewers.length)]\r",
+											");\r",
+											"\r",
+											"// 3) random review content\r",
+											"const contents = [\r",
+											"  \"Excellent doctor, cured my cat!\",\r",
+											"  \"Had to wait too long, but good care.\",\r",
+											"  \"Very friendly staff and great results.\",\r",
+											"  \"Not happy with the follow-up.\",\r",
+											"  \"Would 100% recommend to a friend.\"\r",
+											"];\r",
+											"pm.variables.set(\r",
+											"  \"content\",\r",
+											"  contents[Math.floor(Math.random() * contents.length)]\r",
+											");\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {},
+										"requests": {}
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript",
+										"packages": {},
+										"requests": {}
+									}
+								}
+							],
 							"request": {
 								"auth": {
 									"type": "noauth"
 								},
-								"method": "GET",
+								"method": "POST",
 								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"firstName\": \"Nicholas\",\r\n  \"lastName\" : \"Robinson\",\r\n  \"reviewer\" : \"{{reviewer}}\",\r\n  \"content\"  : \"{{content}}\",\r\n  \"rating\"   : {{rating}}\r\n}\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
 								"url": {
-									"raw": "http://localhost:8080/vet",
+									"raw": "http://localhost:8080/vet-review",
 									"protocol": "http",
 									"host": [
 										"localhost"
 									],
 									"port": "8080",
 									"path": [
-										"vet"
+										"vet-review"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Vet-Review",
+					"item": [
+						{
+							"name": "save Vet-Review",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"firstName\": \"Nicholas\",\r\n  \"lastName\": \"Robinson\",\r\n  \"reviewer\": \"Fred Doe\",\r\n  \"content\": \"Excellent Doctor, cured my Cat\",\r\n  \"rating\": 8\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8080/vet-review",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"vet-review"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "save Vet-Review-Fail Mongo",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"firstName\": \"Nicholas\",\r\n  \"lastName\": \"Robinson\",\r\n  \"reviewer\": \"Mike berman\",\r\n  \"content\": \"Excellent Doctor, cured my Dog\",\r\n  \"rating\": 9\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8080/vet-review",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"vet-review"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "save Vet-Review-Fail Kafka",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"firstName\": \"Nicholas\",\r\n  \"lastName\": \"Robinson\",\r\n  \"reviewer\": \"Fail Kafka\",\r\n  \"content\": \"Excellent Doctor, cured my Dog\",\r\n  \"rating\": 9\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8080/vet-review",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"vet-review"
 									]
 								}
 							},

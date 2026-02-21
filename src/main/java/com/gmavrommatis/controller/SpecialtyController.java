@@ -71,7 +71,7 @@ public class SpecialtyController {
    */
   @Put("/{name}")
   public HttpResponse<SpecialtyResponse> rename(
-      @PathVariable @NotBlank String name, @Body @Valid SpecialtyRequest request) { // todo check it
+      @PathVariable @NotBlank String name, @Body @Valid SpecialtyRequest request) {
 
     try {
       Specialty updated = specialtyService.update(name, request.getName());
