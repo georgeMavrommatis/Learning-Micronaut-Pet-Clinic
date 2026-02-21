@@ -1,0 +1,84 @@
+micronaut:
+  application:
+    name: pet-clinic
+  http:
+    client:
+      # Sets whether throwing an exception upon HTTP error status (>= 400) is preferred
+      exception-on-error-status: false
+  server:
+    thread-selection: AUTO
+    #Reference: https://guides.micronaut.io/latest/micronaut-cors-gradle-java.html
+    cors:
+      enabled: true   # turn on CORS support
+      configurations:
+        ui:
+          allowed-origins:
+            - http://127.0.0.1:8000
+            - http://127.0.0.1:8888
+          allowed-headers: [ Authorization, Content-Type ]
+          allowed-methods: [ GET, POST, PUT, PATCH, DELETE, OPTIONS ]
+          allow-credentials: true
+
+  micronaut:
+    security:
+      enabled: true
+      oauth2:
+        enabled: false
+      token:
+        jwt:
+          enabled: false
+      intercept-url-map:
+        - pattern: /**
+          access:
+            - isAnonymous()
+  data:
+    r2dbc:
+      dialect: POSTGRES
+
+logger:
+  levels:
+    org.mongodb.driver.connection: DEBUG
+    reactor.core.publisher: TRACE
+#    org.mongodb.driver.cluster: DEBUG
+    org.mongodb.driver.protocol.command: DEBUG
+    org.mongodb.driver.protocol.query: DEBUG
+
+
+# Start the WebSocket server
+websocket:
+  server:
+    enabled: true
+
+r2dbc:
+  datasources:
+    default:
+      url: r2dbc:postgresql://localhost:5432/pet_clinic
+      username: pet_clinic
+      password: petclinic
+      options:
+        # Which connection-pool implementation to use. pool value means
+        #“use the built-in R2DBC Pool (io.r2dbc.pool.ConnectionPool)” rather than a direct, non-pooled driver.
+        driver: pool
+        protocol: postgres #The R2DBC URL sub-protocol, i.e. which vendor driver to load under the hood.
+        maxSize: 20 #Maximum number of connections the pool will hold.
+        initialSize: 4 #How many connections to open immediately on startup.
+        poolName: r2dbc #A logical name for the pool instance.
+        registerJmx: false # Don’t expose via JMX
+
+#mongo Reference: https://micronaut-projects.github.io/micronaut-mongodb/5.5.0/guide/configurationreference.html
+mongodb:
+  uri: "mongodb://localhost:27017/petclinic"
+  # 1) Enable POJO mapping (scans your package for getters/setters)
+  package-names:
+    - "com.gmavrommatis.config.mongo.document"
+  automatic-class-models: true
+  # 2) All our pool settings in one place
+  connection-pool:
+    max-size: 5                    # connectionsPerHost
+    min-size: 5                     # minConnectionsPerHost
+    max-wait-time: 2s               # maxWaitTime
+    max-connection-idle-time: 60s   # maxConnectionIdleTime
+    max-connection-life-time: 120s  # maxConnectionLifeTime
+    # (Reactive driver no longer uses threadsAllowedToBlock…)
+    maintenance-initial-delay: 0s
+    maintenance-frequency: 5m
