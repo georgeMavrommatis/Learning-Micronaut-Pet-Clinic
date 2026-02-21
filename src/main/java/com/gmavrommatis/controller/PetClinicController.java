@@ -7,6 +7,13 @@ import io.micronaut.http.HttpResponse;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
 import io.micronaut.http.annotation.QueryValue;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
@@ -18,6 +25,7 @@ import reactor.core.publisher.Mono;
  */
 @Slf4j
 @Controller("/pet-clinic")
+@Tag(name = "Pet Clinic", description = "Operations related to pet clinic and vets")
 public class PetClinicController {
 
   private final VetService vetService;
@@ -39,9 +47,40 @@ public class PetClinicController {
    *     200 OK response containing the paginated clinic data
    */
   @Get("/details")
+  @Operation(
+      summary = "Get pet clinic details (paginated)",
+      description =
+          "Returns paginated pet clinic data (vets with specialties). Supports `page` (0-based) and `size`.",
+      tags = {"Pet Clinic"})
+  @ApiResponse(
+      responseCode = "200",
+      description = "Successful response with paginated PetClinicResponse",
+      content =
+          @Content(
+              mediaType = "application/json",
+              schema = @Schema(implementation = PetClinicResponse.class))) // ,
+  @ApiResponse(responseCode = "400", description = "Invalid pagination parameters") // ,
+  @ApiResponse(responseCode = "500", description = "Internal server error")
   public Mono<HttpResponse<PetClinicResponse>> petClinicDetails(
-      @QueryValue(defaultValue = "0") int page, @QueryValue(defaultValue = "10") int size) {
-    log.info("PetClinicController petClinicDetails");
+      @Parameter(
+              in = ParameterIn.QUERY,
+              name = "page",
+              description = "Zero-based page index",
+              example = "0",
+              schema = @Schema(type = "integer", defaultValue = "0"))
+          @QueryValue(defaultValue = "0")
+          int page,
+      @Parameter(
+              in = ParameterIn.QUERY,
+              name = "size",
+              description = "Number of items per page",
+              example = "10",
+              schema = @Schema(type = "integer", defaultValue = "10"))
+          @QueryValue(defaultValue = "10")
+          int size) {
+    String threadName = Thread.currentThread().getName();
+    String pool = threadName.contains("nioEventLoopGroup") ? "EVENT-LOOP" : "WORKER";
+    log.info("→ executed on {}", pool);
     return vetService
         .getVetsWithSpecialties(Pageable.from(page, size))
         .map(

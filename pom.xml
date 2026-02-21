@@ -198,6 +198,30 @@
       <scope>test</scope>
     </dependency>
 
+    <!-- Swagger annotations -->
+    <!-- Standard Swagger / OpenAPI annotations (io.swagger.v3.oas.annotations.*)
+     - Provides the portable, vendor-neutral OpenAPI annotation types such as
+       @Operation, @Parameter, @Schema, @ApiResponse, etc.
+     - Use these on controllers, methods and DTOs to describe your API contract.
+     - Needed at compile-time so your code can compile when you reference those annotations,
+       and the annotation processor (micronaut-openapi) can read them to enrich the generated spec.-->
+    <dependency>
+      <groupId>io.swagger.core.v3</groupId>
+      <artifactId>swagger-annotations</artifactId>
+      <version>${swagger.version}</version>
+    </dependency>
+
+    <!-- Micronaut OpenAPI annotations (runtime)
+     - Adds Micronaut-specific annotations / integration helpers used by the Micronaut OpenAPI tooling.
+     - These annotations (and small runtime bits) help Micronaut wire the generated OpenAPI spec into
+       the application and, in some cases, supply extra metadata the generator expects.
+     - Typically provided as a regular dependency (implementation/runtime) so the app has the annotation
+       classes available at compile time and, if needed, at runtime.-->
+    <dependency>
+      <groupId>io.micronaut.openapi</groupId>
+      <artifactId>micronaut-openapi-annotations</artifactId>
+      <version>${micronaut.openapi.version}</version>
+    </dependency>
   </dependencies>
   <build>
     <plugins>
@@ -280,6 +304,19 @@
               <groupId>io.micronaut.validation</groupId>
               <artifactId>micronaut-validation-processor</artifactId>
             </path>
+
+
+            <!-- Annotation processor / generator for Micronaut OpenAPI
+                 - This is the **compile-time** processor that scans code and swagger/micronaut annotations
+                   and generates the OpenAPI spec files (e.g. META-INF/swagger/openapi.yml) and the Swagger UI
+                   views into your build output.
+                 - It must be available to the Java compiler (javac) as an annotation processor.
+                 - Without this artifact on the compiler's processor path, OpenAPI YAML/JSON won't be generated.-->
+            <path>
+              <groupId>io.micronaut.openapi</groupId>
+              <artifactId>micronaut-openapi</artifactId>
+              <version>${micronaut.openapi.version}</version>
+            </path>
           </annotationProcessorPaths>
           <compilerArgs>
             <arg>-Amicronaut.processing.group=com.gmavrommatis</arg>
@@ -309,6 +346,44 @@
             <goals>
               <goal>apply</goal>
             </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <!--Copy openapi.yml under target resources to be available in swagger ui,
+      or use http://localhost:8080/swagger-ui/index.html?url=openapi.yml with request parameter
+      the file yml location under project-->
+      <plugin>
+        <!-- Maven plugin for copying resources during the build -->
+        <artifactId>maven-resources-plugin</artifactId>
+        <executions>
+          <execution>
+            <!-- Identifier for this specific execution -->
+            <id>copy-openapi</id>
+
+            <!-- Phase of the Maven build lifecycle when this execution runs -->
+            <phase>process-resources</phase>
+
+            <!-- The goal of the plugin to execute -->
+            <goals>
+              <goal>copy-resources</goal> <!-- copy resources from one location to another -->
+            </goals>
+
+            <configuration>
+              <!-- Destination directory where the OpenAPI spec will be copied -->
+              <outputDirectory>${project.build.outputDirectory}/META-INF/swagger</outputDirectory>
+
+              <resources>
+                <resource>
+                  <!-- Source directory where your OpenAPI YAML is generated -->
+                  <directory>${project.basedir}</directory> <!-- replace with actual path if needed -->
+
+                  <includes>
+                    <!-- Specify which files to copy -->
+                    <include>openapi.yml</include> <!-- only copy openapi.yml -->
+                  </includes>
+                </resource>
+              </resources>
+            </configuration>
           </execution>
         </executions>
       </plugin>
