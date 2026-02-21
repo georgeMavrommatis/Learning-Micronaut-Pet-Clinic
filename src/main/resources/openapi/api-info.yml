@@ -1,0 +1,11 @@
+title: Vet API
+version: 1.0.0
+description: API to manage veterinarians in the Pet Clinic system.
+termsOfService: https://example.com/terms
+contact:
+  name: API Support
+  url: https://example.com/support
+  email: support@example.com
+license:
+  name: Apache 2.0
+  url: https://www.apache.org/licenses/LICENSE-2.0.html

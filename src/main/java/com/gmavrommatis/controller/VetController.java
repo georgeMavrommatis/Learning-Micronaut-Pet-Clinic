@@ -18,7 +18,7 @@ import reactor.core.publisher.Mono;
  *
  * @author GewrgiosMmavrommatis
  */
-@Controller("/vet")
+@Controller("/vetCustom")
 public class VetController {
 
   private final VetService vetService;
