@@ -1,7 +1,7 @@
 package com.gmavrommatis.service;
 
-import com.gmavrommatis.config.domain.Specialty;
-import com.gmavrommatis.config.repository.SpecialtyRepository;
+import com.gmavrommatis.config.jpa.domain.Specialty;
+import com.gmavrommatis.config.jpa.repository.SpecialtyRepository;
 import io.micronaut.transaction.annotation.Transactional;
 import jakarta.inject.Singleton;
 import java.util.List;
@@ -28,40 +28,18 @@ public class SpecialtyService {
    *
    * @return a {@link List} of all {@link Specialty} entities
    */
-  @Transactional(readOnly = true)
+  @Transactional(readOnly = true, transactionManager = "jpaTx")
   public List<Specialty> findAll() {
     return specialtyRepository.findAll();
   }
 
   /**
-   * Finds a specialty by its ID.
-   *
-   * @param id the ID of the specialty
-   * @return the {@link Specialty} entity, or {@code null} if not found
-   */
-  @Transactional(readOnly = true)
-  public Specialty findById(Long id) {
-    return specialtyRepository.findById(id).orElse(null);
-  }
-
-  /**
-   * Finds a specialty by its name.
-   *
-   * @param name the name of the specialty
-   * @return the {@link Specialty} entity, or {@code null} if not found
-   */
-  @Transactional(readOnly = true)
-  public Specialty findByName(String name) {
-    return specialtyRepository.findByName(name).orElse(null);
-  }
-
-  /**
-   * Creates a new specialty with the given name.
+   * Creates a new specialty with the specified name.
    *
    * @param name the name of the new specialty
    * @return the created {@link Specialty} entity
    */
-  @Transactional
+  @Transactional(transactionManager = "jpaTx")
   public Specialty create(String name) {
     Specialty s = new Specialty();
     s.setName(name);
@@ -69,14 +47,13 @@ public class SpecialtyService {
   }
 
   /**
-   * Updates an existing specialty's name.
+   * Updates the name of an existing specialty.
    *
-   * @param existingName the current name of the specialty
-   * @param newName the new name to assign
+   * @param existingName the current name of the specialty to update
+   * @param newName the new name to assign to the specialty
    * @return the updated {@link Specialty} entity
-   * @throws NoSuchElementException if no specialty exists with {@code existingName}
    */
-  @Transactional
+  @Transactional(transactionManager = "jpaTx")
   public Specialty update(String existingName, String newName) {
     Specialty s =
         specialtyRepository
@@ -85,5 +62,15 @@ public class SpecialtyService {
 
     s.setName(newName);
     return specialtyRepository.update(s);
+  }
+
+  /**
+   * Deletes the specialty with the specified name.
+   *
+   * @param name the unique name of the specialty to delete
+   */
+  @Transactional(transactionManager = "jpaTx")
+  public void deleteByName(String name) {
+    specialtyRepository.deleteByName(name);
   }
 }

@@ -1,35 +1,76 @@
 package com.gmavrommatis.mapper;
 
-import com.gmavrommatis.config.domain.Vet;
+import com.gmavrommatis.config.jpa.domain.Vet;
 import com.gmavrommatis.model.response.VetResponse;
 import java.util.List;
+import org.mapstruct.IterableMapping;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 
 /**
- * MapStruct mapper for converting {@link Vet} entities into {@link VetResponse} DTOs.
+ * Mapper interface for converting {@link Vet} entities into {@link VetResponse} DTOs.
  *
- * <p>Provides methods for mapping a single {@code Vet} as well as lists of vets. Implemented at
- * compile time by MapStruct.
+ * <p>Supports two mapping strategies:
  *
- * @author Your Name
+ * <ul>
+ *   <li><strong>Lazy (Basic)</strong> – does not fetch or include lazy-loaded relationships (e.g.,
+ *       specialties).
+ *   <li><strong>Eager (Detailed)</strong> – includes all data, triggering any lazy-loaded fields.
+ * </ul>
+ *
+ * <p>Implemented at compile time by MapStruct.
+ *
+ * @author GewrgiosMmavrommatis
  */
 @Mapper(componentModel = "jsr330")
 public interface VetToVetResponseMapper {
 
-  /**
-   * Converts a single {@link Vet} entity into a {@link VetResponse} DTO.
-   *
-   * @param vet the {@code Vet} entity to map; may be {@code null}
-   * @return the corresponding {@code VetResponse} DTO, or {@code null} if the input was {@code
-   *     null}
-   */
-  VetResponse toVetResponse(Vet vet);
+  /*** BASIC MAPPING ***/
 
   /**
-   * Converts a list of {@link Vet} entities into a list of {@link VetResponse} DTOs.
+   * Maps a single {@link Vet} entity to a {@link VetResponse} DTO using basic mapping.
    *
-   * @param vets the list of {@code Vet} entities to map; may be {@code null}
-   * @return a list of {@code VetResponse} DTOs, or {@code null} if the input list was {@code null}
+   * <p>Ignores the specialties field to avoid triggering lazy loading.
+   *
+   * @param vet the {@code Vet} entity to map; may be {@code null}
+   * @return a {@code VetResponse} with core fields mapped, or {@code null} if {@code vet} is {@code
+   *     null}
    */
-  List<VetResponse> toVetResponseList(List<Vet> vets);
+  @Named("lazyVet")
+  @Mapping(target = "specialties", ignore = true)
+  VetResponse toVetResponseLazy(Vet vet);
+
+  /**
+   * Maps a list of {@link Vet} entities to a list of {@link VetResponse} DTOs using basic mapping.
+   *
+   * @param vets the list of {@code Vet} entities; may be {@code null}
+   * @return a list of {@code VetResponse} objects, or {@code null} if {@code vets} is {@code null}
+   */
+  @IterableMapping(qualifiedByName = "lazyVet")
+  List<VetResponse> toVetResponseLazyList(List<Vet> vets);
+
+  /*** DETAILED MAPPING ***/
+
+  /**
+   * Maps a single {@link Vet} entity to a {@link VetResponse} DTO using detailed mapping.
+   *
+   * <p>Includes all fields, triggering any lazy-loaded relationships.
+   *
+   * @param vet the {@code Vet} entity to map; may be {@code null}
+   * @return a fully populated {@code VetResponse}, or {@code null} if {@code vet} is {@code null}
+   */
+  @Named("eagerVet")
+  VetResponse toVetResponseEager(Vet vet);
+
+  /**
+   * Maps a list of {@link Vet} entities to a list of {@link VetResponse} DTOs using detailed
+   * mapping.
+   *
+   * @param vets the list of {@code Vet} entities; may be {@code null}
+   * @return a list of fully populated {@code VetResponse} objects, or {@code null} if {@code vets}
+   *     is {@code null}
+   */
+  @IterableMapping(qualifiedByName = "eagerVet")
+  List<VetResponse> toVetResponseEagerList(List<Vet> vets);
 }

@@ -1,79 +1,52 @@
 package com.gmavrommatis.mapper;
 
-import com.gmavrommatis.config.domain.Vet;
+import com.gmavrommatis.config.jpa.domain.Vet;
 import com.gmavrommatis.model.response.PetClinicResponse;
-import io.micronaut.data.model.Page;
+import com.gmavrommatis.model.response.VetResponse;
 import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import java.util.List;
-import org.mapstruct.Mapper;
 
-/**
- * Mapper that converts pages of {@link Vet} entities into {@link PetClinicResponse} DTOs, including
- * pagination metadata.
- *
- * <p>Uses a {@link VetToVetResponseMapper} to map individual {@link Vet} instances into their
- * corresponding response DTOs.
- *
- * <p>Implemented at compile time by MapStruct.
- *
- * @author Your Name
- */
-@Mapper(componentModel = "jsr330", uses = VetToVetResponseMapper.class)
-public abstract class VetToPetClinicResponseMapper {
+@Singleton
+public class VetToPetClinicResponseMapper {
 
-  @Inject protected VetToVetResponseMapper vetToVetResponseMapper;
+  private final VetToVetResponseMapper vetToVetResponseMapper;
 
-  /**
-   * Converts a list of {@link Vet} entities and a {@link Page} wrapper into a {@link
-   * PetClinicResponse} using basic mapping for each vet.
-   *
-   * <p>If the provided list of vets is {@code null}, this method returns {@code null}. Otherwise,
-   * it maps the page content to DTOs and populates pagination fields.
-   *
-   * @param vets the raw list of {@code Vet} entities (ignored if {@code null})
-   * @param vetsPage the {@link Page} containing the vets and pagination info
-   * @return a {@code PetClinicResponse} containing:
-   *     <ul>
-   *       <li>the list of mapped vet DTOs for the current page
-   *       <li>current page index
-   *       <li>page size
-   *       <li>total number of pages
-   *       <li>total number of elements across all pages
-   *     </ul>
-   *     or {@code null} if {@code vets} is {@code null}
-   */
-  public PetClinicResponse toLazyResponse(List<Vet> vets, Page<Vet> vetsPage) {
-    if (vets == null) return null;
-    return PetClinicResponse.builder()
-        .vets(vetToVetResponseMapper.toVetResponseList(vetsPage.getContent()))
-        .page(vetsPage.getPageable().getNumber())
-        .size(vetsPage.getPageable().getSize())
-        .totalPages(vetsPage.getTotalPages())
-        .totalElements(vetsPage.getTotalSize())
-        .build();
+  @Inject
+  public VetToPetClinicResponseMapper(VetToVetResponseMapper vetToVetResponseMapper) {
+    this.vetToVetResponseMapper = vetToVetResponseMapper;
   }
 
   /**
-   * Converts a list of {@link Vet} entities and a {@link Page} wrapper into a {@link
-   * PetClinicResponse} using detailed mapping for each vet.
+   * Maps a list of {@link Vet} objects into a {@link PetClinicResponse}, using lazy/basic mapping.
    *
-   * <p>Functionally identical to {@link #toLazyResponse(List, Page)}, but provided to convey
-   * semantic intent when detailed mapping is desired. Returns {@code null} if the provided list of
-   * vets is {@code null}.
-   *
-   * @param vets the raw list of {@code Vet} entities (ignored if {@code null})
-   * @param vetsPage the {@link Page} containing the vets and pagination info
-   * @return a {@code PetClinicResponse} containing detailed vet DTOs and pagination metadata, or
-   *     {@code null} if {@code vets} is {@code null}
+   * @param vets the list of {@link Vet} entities to map; may be {@code null}
+   * @return a {@code PetClinicResponse} containing the lazy-mapped vets, or {@code null} if the
+   *     input list was {@code null}
    */
-  public PetClinicResponse toDetailedResponsePageable(List<Vet> vets, Page<Vet> vetsPage) {
-    if (vets == null) return null;
-    return PetClinicResponse.builder()
-        .vets(vetToVetResponseMapper.toVetResponseList(vetsPage.getContent()))
-        .page(vetsPage.getPageable().getNumber())
-        .size(vetsPage.getPageable().getSize())
-        .totalPages(vetsPage.getTotalPages())
-        .totalElements(vetsPage.getTotalSize())
-        .build();
+  public PetClinicResponse toLazyResponse(List<Vet> vets) {
+    if (vets == null) {
+      return null;
+    }
+    List<VetResponse> lazyList =
+        vets.stream().map(vetToVetResponseMapper::toVetResponseLazy).toList();
+    return new PetClinicResponse(lazyList);
+  }
+
+  /**
+   * Maps a list of {@link Vet} objects into a {@link PetClinicResponse}, using eager/detailed
+   * mapping.
+   *
+   * @param vets the list of {@link Vet} entities to map; may be {@code null}
+   * @return a {@code PetClinicResponse} containing the eager-mapped vets, or {@code null} if the
+   *     input list was {@code null}
+   */
+  public PetClinicResponse toDetailedResponse(List<Vet> vets) {
+    if (vets == null) {
+      return null;
+    }
+    List<VetResponse> eagerList =
+        vets.stream().map(vetToVetResponseMapper::toVetResponseEager).toList();
+    return new PetClinicResponse(eagerList);
   }
 }

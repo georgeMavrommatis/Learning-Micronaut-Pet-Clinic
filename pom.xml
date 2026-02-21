@@ -56,10 +56,10 @@
       <scope>provided</scope>
     </dependency>
 
-    <!--JDBC-->
+    <!-- JPA and Hibernate -->
     <dependency>
       <groupId>io.micronaut.data</groupId>
-      <artifactId>micronaut-data-jdbc</artifactId>
+      <artifactId>micronaut-data-hibernate-jpa</artifactId>
       <scope>compile</scope>
     </dependency>
 
@@ -76,10 +76,11 @@
       <scope>compile</scope>
     </dependency>
 
+    <!-- Micronaut Data Transaction Hibernate dependency: -->
     <dependency>
-      <groupId>org.yaml</groupId>
-      <artifactId>snakeyaml</artifactId>
-      <scope>runtime</scope>
+      <groupId>io.micronaut.data</groupId>
+      <artifactId>micronaut-data-tx-hibernate</artifactId>
+      <scope>compile</scope>
     </dependency>
 
     <!--aggregated jupiter artifact already brings in junit-jupiter-engine,
@@ -89,6 +90,21 @@
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
       <scope>test</scope>
+    </dependency>
+
+    <!--Provides the @MongoRepository interfaces, query annotations,
+        and the annotation-processor that generates DAO implementations.-->
+    <dependency>
+      <groupId>io.micronaut.data</groupId>
+      <artifactId>micronaut-data-mongodb</artifactId>
+    </dependency>
+
+    <!--The actual MongoDB Java driver that implements the blocking (synchronous) client API.
+        Micronaut auto-configures a com.mongodb.client.MongoClient bean from this driver,
+        which the generated repositories then use under the hood.-->
+    <dependency>
+      <groupId>org.mongodb</groupId>
+      <artifactId>mongodb-driver-sync</artifactId>
     </dependency>
 
     <!-- MapStruct -->
@@ -184,7 +200,13 @@
               <artifactId>micronaut-data-processor</artifactId>
             </path>
 
-            <!-- 6) Any other APTs you need (e.g. Micronaut HTTP validation) -->
+            <!-- 6) Necessary for Micronaut Data AOT configuration -->
+            <path>
+              <groupId>io.micronaut.data</groupId>
+              <artifactId>micronaut-data-document-processor</artifactId>
+            </path>
+
+            <!-- 7) Any other APTs you need (e.g. Micronaut HTTP validation) -->
             <path>
               <groupId>io.micronaut</groupId>
               <artifactId>micronaut-http-validation</artifactId>

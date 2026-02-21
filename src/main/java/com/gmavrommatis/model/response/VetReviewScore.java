@@ -2,14 +2,20 @@ package com.gmavrommatis.model.response;
 
 import io.micronaut.core.annotation.Introspected;
 import io.micronaut.serde.annotation.Serdeable;
-import java.util.List;
-import lombok.Data;
+import lombok.*;
 
 @Introspected
 @Serdeable
-@Data
-public class VetResponse {
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
+@Builder
+public class VetReviewScore {
+
   private String firstName;
+
   private String lastName;
-  private List<SpecialtyResponse> specialties;
+
+  private Double averageRating;
 }

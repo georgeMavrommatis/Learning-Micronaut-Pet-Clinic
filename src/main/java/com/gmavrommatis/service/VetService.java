@@ -1,283 +1,174 @@
 package com.gmavrommatis.service;
 
-import com.gmavrommatis.config.domain.*;
-import com.gmavrommatis.config.repository.SpecialtyRepository;
-import com.gmavrommatis.config.repository.VetRelatedRepository;
-import com.gmavrommatis.config.repository.VetRepository;
-import com.gmavrommatis.config.repository.VetSpecialtyRepository;
-import com.gmavrommatis.mapper.SpecialtyMapper;
-import com.gmavrommatis.mapper.SpecialtyToSpecialtyResponseMapper;
-import com.gmavrommatis.mapper.VetRelatedToVetResponseMapper;
-import com.gmavrommatis.mapper.VetToVetResponseMapper;
+import com.gmavrommatis.config.jpa.domain.Specialty;
+import com.gmavrommatis.config.jpa.domain.Vet;
+import com.gmavrommatis.config.jpa.repository.SpecialtyRepository;
+import com.gmavrommatis.config.jpa.repository.VetRepository;
 import com.gmavrommatis.model.request.CreateVetRequest;
 import com.gmavrommatis.model.request.UpdateVetRequest;
-import com.gmavrommatis.model.response.PetClinicResponse;
-import com.gmavrommatis.model.response.SpecialtyResponse;
-import com.gmavrommatis.model.response.VetResponse;
-import io.micronaut.data.model.Page;
-import io.micronaut.data.model.Pageable;
 import io.micronaut.transaction.annotation.Transactional;
 import jakarta.inject.Singleton;
 import java.util.*;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Service layer for managing {@link Vet} entities and their specialties.
+ *
+ * @author GewrgiosMmavrommatis
+ */
 @Singleton
 @Slf4j
 public class VetService {
 
   private final VetRepository vetRepository;
-  private final VetRelatedRepository vetRelatedRepository;
   private final SpecialtyRepository specialtyRepository;
-  private final SpecialtyService specialtyService;
-  private final VetSpecialtyRepository vetSpecialtyRepository;
-  private final VetToVetResponseMapper vetToVetResponseMapper;
-  private final VetRelatedToVetResponseMapper vetRelatedToVetResponseMapper;
-  private final SpecialtyToSpecialtyResponseMapper specialtyToSpecialtyResponseMapper;
-  private final SpecialtyMapper specialtyMapper;
 
-  public VetService(
-      VetRepository vetRepository,
-      VetRelatedRepository vetRelatedRepository,
-      SpecialtyRepository specialtyRepository,
-      SpecialtyService specialtyService,
-      VetSpecialtyRepository vetSpecialtyRepository,
-      VetToVetResponseMapper vetToVetResponseMapper,
-      VetRelatedToVetResponseMapper vetRelatedToVetResponseMapper,
-      SpecialtyToSpecialtyResponseMapper specialtyToSpecialtyResponseMapper,
-      SpecialtyMapper specialtyMapper) {
+  public VetService(VetRepository vetRepository, SpecialtyRepository specialtyRepository) {
     this.vetRepository = vetRepository;
-    this.vetRelatedRepository = vetRelatedRepository;
     this.specialtyRepository = specialtyRepository;
-    this.specialtyService = specialtyService;
-    this.vetSpecialtyRepository = vetSpecialtyRepository;
-    this.vetToVetResponseMapper = vetToVetResponseMapper;
-    this.vetRelatedToVetResponseMapper = vetRelatedToVetResponseMapper;
-    this.specialtyToSpecialtyResponseMapper = specialtyToSpecialtyResponseMapper;
-    this.specialtyMapper = specialtyMapper;
   }
 
   /**
-   * Fetches all vets with pagination.
-   *
-   * @param pageable pagination information
-   * @return a {@link Page} of {@link Vet} entities
-   */
-  @Transactional(readOnly = true)
-  public PetClinicResponse findAllRelatedPageable(Pageable pageable) {
-    Page<VetRelated> vetPage = vetRelatedRepository.findAll(pageable);
-
-    return PetClinicResponse.builder()
-        .vets(vetRelatedToVetResponseMapper.toVetResponseList(vetPage.getContent()))
-        .page(pageable.getNumber())
-        .size(pageable.getSize())
-        .totalElements((long) vetPage.getNumberOfElements())
-        .totalPages(vetPage.getTotalPages())
-        .build();
-  }
-
-  /**
-   * Retrieves all veterinarians without specialty.
+   * Retrieves all veterinarians without forcing specialty initialization.
    *
    * @return a {@link List} of all {@link Vet} entities
    */
-  @Transactional(readOnly = true)
+  @Transactional(readOnly = true, transactionManager = "jpaTx")
   public List<Vet> findAll() {
-    log.info("Request to get all Vets");
     return vetRepository.findAll();
   }
 
   /**
-   * Retrieves paginated vets with their specialties.
+   * Retrieves a veterinarian by their first and last name.
    *
-   * @param pageable pagination information
-   * @return {@link PetClinicResponse} containing vets with specialties
+   * <p>Executes within a read-only JPA transaction using the "jpaTx" transaction manager. Looks up
+   * the vet via the repository and throws an exception if not found.
+   *
+   * @param firstName the first name of the veterinarian to find
+   * @param lastName the last name of the veterinarian to find
+   * @return the matching {@link Vet} entity
+   * @throws NoSuchElementException if no veterinarian is found with the given name
    */
-  @Transactional(readOnly = true)
-  public PetClinicResponse getVetsWithSpecialties(Pageable pageable) {
-    Page<Vet> vetPage = vetRepository.findAllPaged(pageable);
-    List<VetResponse> vetResponses = new ArrayList<>();
-
-    for (Vet vet : vetPage.getContent()) {
-      List<VetSpecialty> vetSpecialties = vetSpecialtyRepository.findByVetId(vet.getId());
-      List<Specialty> specialties = new ArrayList<>();
-      for (VetSpecialty vs : vetSpecialties) {
-        Specialty spec = specialtyService.findById(vs.getId().getSpecialtyId());
-        if (spec != null) specialties.add(spec);
-      }
-      VetResponse vr = vetToVetResponseMapper.toVetResponse(vet);
-      vr.setSpecialties(specialtyToSpecialtyResponseMapper.toSpecialtyResponseList(specialties));
-      vetResponses.add(vr);
-    }
-
-    return PetClinicResponse.builder()
-        .vets(vetResponses)
-        .page(pageable.getNumber())
-        .size(pageable.getSize())
-        .totalElements((long) vetPage.getNumberOfElements())
-        .totalPages(vetPage.getTotalPages())
-        .build();
+  @Transactional(readOnly = true, transactionManager = "jpaTx")
+  public Vet findByFirstAndLastName(String firstName, String lastName) {
+    return vetRepository
+        .findByFirstNameAndLastName(firstName, lastName)
+        .orElseThrow(
+            () -> new NoSuchElementException("Vet not found: " + firstName + " " + lastName));
   }
 
-  @Transactional // default readOnly = false
-  public VetResponse createVet(CreateVetRequest request) {
+  /**
+   * Creates and persists a new {@link Vet} along with its associated specialties.
+   *
+   * <p>Executes within a JPA transaction (using the "jpaTx" transaction manager). The method:
+   *
+   * <ol>
+   *   <li>Builds a new, transient {@code Vet} instance from the request.
+   *   <li>Looks up each specialty by name; throws {@link NoSuchElementException} if any specialty
+   *       is not found.
+   *   <li>Associates the loaded specialties with the vet and saves the vet. Hibernate will handle
+   *       inserting into the join table.
+   *   <li>After saving, if the vet’s first name equals "test_fail", a {@link RuntimeException} is
+   *       thrown to simulate a rollback scenario.
+   * </ol>
+   *
+   * @param request the {@link CreateVetRequest} containing the vet’s first name, last name, and
+   *     list of specialty names to associate
+   * @return the persisted {@link Vet} entity with its generated ID and specialties
+   * @throws NoSuchElementException if any requested specialty name does not exist
+   * @throws RuntimeException if the saved vet’s first name equals "test_fail"
+   */
+  @Transactional(transactionManager = "jpaTx") // default readOnly = false
+  public Vet createVet(CreateVetRequest request) {
     // 1. Create a new Vet
-    VetRelated vetRelated =
-        VetRelated.builder()
-            .firstName(request.getFirstName())
-            .lastName(request.getLastName())
-            .build();
+    Vet vet =
+        Vet.builder().firstName(request.getFirstName()).lastName(request.getLastName()).build();
 
     // 2. Load each Specialty by ID and add it to the Vet
-    Set<Specialty> specs = specialtyRepository.findByNameIn(request.getSpecialties());
-    if (!request.getSpecialties().containsAll(specs)) {
-      throw new NoSuchElementException("Specialties not found");
+    Set<Specialty> specs = new HashSet<>();
+    for (String specialtyName : request.getSpecialties()) {
+      Specialty s =
+          specialtyRepository
+              .findByName(specialtyName)
+              .orElseThrow(
+                  () -> new NoSuchElementException("Specialty not found: " + specialtyName));
+      specs.add(s);
     }
-
-    vetRelated.setSpecialties(specialtyMapper.toRelatedSet(specs));
+    vet.setSpecialties(specs);
 
     // 3. Save the Vet. Hibernate will insert into vets,
     //    then into vet_specialties join-table for each Specialty
-    VetRelated vetResponse = vetRelatedRepository.save(vetRelated);
+    Vet vetResponse = vetRepository.save(vet);
     // here we mimic an intentional exception to show how transactionality rollback commit to
     // database
     if (vetResponse.getFirstName().startsWith("fail")) {
       throw new RuntimeException("intentional exception");
     }
-    return vetRelatedToVetResponseMapper.toVetResponse(vetResponse);
+    return vetResponse;
   }
 
   /**
-   * Creates a vet with associated specialties.
+   * Deletes veterinarians matching the given first and last name.
    *
-   * @param createVetRequest request containing vet info and specialties
-   * @return created {@link VetResponse}
+   * <p>Returns the number of deleted records. If no matching veterinarian is found, a {@link
+   * NoSuchElementException} is thrown.
+   *
+   * @param firstName the vet’s first name
+   * @param lastName the vet’s last name
+   * @return the number of veterinarians deleted
    */
-  @Transactional
-  public VetResponse createVetWithSpecialties(CreateVetRequest createVetRequest) {
-    List<Specialty> specialties = new ArrayList<>();
-    for (String name : createVetRequest.getSpecialties()) {
-      Specialty spec = specialtyRepository.findByName(name).orElse(null);
-      if (spec == null) throw new NoSuchElementException("Specialty not found: " + name);
-      specialties.add(spec);
+  @Transactional(transactionManager = "jpaTx")
+  public Long deleteByName(String firstName, String lastName) {
+    Optional<Vet> optionalVet = vetRepository.findByFirstNameAndLastName(firstName, lastName);
+    if (optionalVet.isEmpty()) {
+      throw new IllegalArgumentException("Vet " + firstName + " " + " not exists");
     }
+    return vetRepository.deleteByFirstNameAndLastName(firstName, lastName);
+  }
 
-    Vet vet = new Vet();
-    vet.setFirstName(createVetRequest.getFirstName());
-    vet.setLastName(createVetRequest.getLastName());
-    Vet savedVet = vetRepository.save(vet);
+  /**
+   * Updates an existing veterinarian’s personal details and specialties.
+   *
+   * <p>Only non-{@code null} fields in the {@link UpdateVetRequest} will be applied. Validates
+   * specialty names before association.
+   *
+   * @param firstName the current first name of the vet to update
+   * @param lastName the current last name of the vet to update
+   * @param req the {@link UpdateVetRequest} containing updated fields
+   * @return the updated {@link Vet} entity
+   */
+  @Transactional(transactionManager = "jpaTx")
+  public Vet updateVetByName(String firstName, String lastName, UpdateVetRequest req) {
 
-    for (Specialty spec : specialties) {
-      vetSpecialtyRepository.save(
-          new VetSpecialty(new VetSpecialtyId(savedVet.getId(), spec.getId())));
+    Vet vet =
+        vetRepository
+            .findByFirstNameAndLastName(firstName, lastName)
+            .orElseThrow(
+                () -> new NoSuchElementException("Vet not found: " + firstName + " " + lastName));
+
+    // same logic as before, e.g. req.getFirstName() != null → vet.setFirstName(...)
+    if (req.getFirstName() != null) {
+      vet.setFirstName(req.getFirstName());
     }
-
-    VetResponse response = vetToVetResponseMapper.toVetResponse(savedVet);
-    response.setSpecialties(
-        specialtyToSpecialtyResponseMapper.toSpecialtyResponseList(specialties));
-    return response;
-  }
-
-  /**
-   * Finds vets by last name and filters by specialties.
-   *
-   * @param lastName the last name
-   * @param specialtyNames list of specialty names
-   * @return list of {@link VetResponse} matching criteria
-   */
-  @Transactional(readOnly = true)
-  public List<VetResponse> findByLastName(String lastName, List<String> specialtyNames) {
-    List<Vet> vets = vetRepository.findByLastName(lastName);
-    if (vets == null || vets.isEmpty()) return List.of();
-
-    List<VetResponse> responses = new ArrayList<>();
-    for (Vet vet : vets) {
-      List<Specialty> specialties = specialtyRepository.findByVetId(vet.getId());
-      List<SpecialtyResponse> specialtyResponses =
-          specialtyToSpecialtyResponseMapper.toSpecialtyResponseList(specialties);
-
-      boolean hasMatching =
-          specialtyResponses.stream()
-              .map(SpecialtyResponse::getName)
-              .anyMatch(specialtyNames::contains);
-
-      if (hasMatching) {
-        VetResponse vr = vetToVetResponseMapper.toVetResponse(vet);
-        vr.setSpecialties(specialtyResponses);
-        responses.add(vr);
-      }
+    if (req.getLastName() != null) {
+      vet.setLastName(req.getLastName());
     }
-    return responses;
-  }
-
-  /**
-   * Deletes a vet by name (cascade).
-   *
-   * @param firstName first name
-   * @param lastName last name
-   * @throws NoSuchElementException if vet not found
-   */
-  @Transactional
-  public void deleteByNameWithCascade(String firstName, String lastName) {
-    Long deletedCount = vetRepository.deleteByFirstNameAndLastName(firstName, lastName);
-    if (deletedCount == null || deletedCount == 0)
-      throw new NoSuchElementException("No vet found with name: " + firstName + " " + lastName);
-  }
-
-  /**
-   * Deletes a vet by name (no cascade; deletes associations manually first).
-   *
-   * @param firstName first name
-   * @param lastName last name
-   */
-  @Transactional
-  public void deleteByNameWithoutCascade(String firstName, String lastName) {
-    List<Vet> vets = vetRepository.findByFirstNameAndLastName(firstName, lastName);
-    if (vets == null || vets.isEmpty())
-      throw new NoSuchElementException("No vet found with name: " + firstName + " " + lastName);
-    Vet vet = vets.get(0);
-
-    vetSpecialtyRepository.deleteByVetId(vet.getId());
-    Long deletedCount = vetRepository.deleteByFirstNameAndLastName(firstName, lastName);
-    if (deletedCount == null || deletedCount == 0)
-      throw new RuntimeException("Failed to delete vet with name: " + firstName + " " + lastName);
-  }
-
-  /**
-   * Updates a vet’s info and specialties.
-   *
-   * @param firstName current first name
-   * @param lastName current last name
-   * @param req update request
-   * @return updated {@link VetResponse}
-   */
-  @Transactional
-  public VetResponse updateVetByName(String firstName, String lastName, UpdateVetRequest req) {
-    List<Vet> vets = vetRepository.findByFirstNameAndLastName(firstName, lastName);
-    if (vets == null || vets.isEmpty())
-      throw new NoSuchElementException("Vet not found: " + firstName + " " + lastName);
-    Vet vet = vets.get(0);
-
-    if (req.getFirstName() != null) vet.setFirstName(req.getFirstName());
-    if (req.getLastName() != null) vet.setLastName(req.getLastName());
-
-    List<Specialty> specialties = new ArrayList<>();
     if (req.getSpecialtyNames() != null) {
-      for (String name : req.getSpecialtyNames()) {
-        Specialty spec = specialtyRepository.findByName(name).orElse(null);
-        if (spec == null) throw new NoSuchElementException("Specialty not found: " + name);
-        specialties.add(spec);
-      }
+      Set<Specialty> specs =
+          req.getSpecialtyNames().stream()
+              .map(
+                  specialtyName ->
+                      specialtyRepository
+                          .findByName(specialtyName)
+                          .orElseThrow(
+                              () ->
+                                  new NoSuchElementException(
+                                      "Specialty not found: " + specialtyName)))
+              .collect(Collectors.toSet());
+      vet.setSpecialties(specs);
     }
 
-    vetRepository.update(vet);
-    vetSpecialtyRepository.deleteByVetId(vet.getId());
-    for (Specialty spec : specialties) {
-      vetSpecialtyRepository.save(new VetSpecialty(new VetSpecialtyId(vet.getId(), spec.getId())));
-    }
-
-    VetResponse response = vetToVetResponseMapper.toVetResponse(vet);
-    response.setSpecialties(
-        specialtyToSpecialtyResponseMapper.toSpecialtyResponseList(specialties));
-    return response;
+    return vetRepository.update(vet);
   }
 }

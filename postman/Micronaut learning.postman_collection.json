@@ -142,7 +142,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n  \"firstName\": \"Mike\",\r\n  \"lastName\": \"Peterson\",\r\n  \"specialties\": [\r\n    \"Radiology\"\r\n  ]\r\n}",
+									"raw": "{\r\n  \"firstName\": \"Mike\",\r\n  \"lastName\": \"Peterson\",\r\n  \"specialtyNames\": [\r\n    \"Radiology\"\r\n  ]\r\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -523,7 +523,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n  \"firstName\": \"Mike\",\r\n  \"lastName\": \"Peterson\",\r\n  \"specialties\": [\r\n    \"Radiology\"\r\n  ]\r\n}",
+									"raw": "{\r\n  \"firstName\": \"Mike\",\r\n  \"lastName\": \"Peterson\",\r\n  \"specialtyNames\": [\r\n    \"Radiology\"\r\n  ]\r\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -942,6 +942,39 @@
 								}
 							},
 							"response": []
+						},
+						{
+							"name": "get pet-clinic details Joined",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/pet-clinic/detailsJoined?page=00&size=10000",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"pet-clinic",
+										"detailsJoined"
+									],
+									"query": [
+										{
+											"key": "page",
+											"value": "00"
+										},
+										{
+											"key": "size",
+											"value": "10000"
+										}
+									]
+								}
+							},
+							"response": []
 						}
 					]
 				},
@@ -1007,7 +1040,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n  \"firstName\": \"test_related\",\r\n  \"lastName\": \"related\",\r\n  \"specialties\": [\r\n    \"Radiology\",\r\n    \"Surgery\"\r\n  ]\r\n}",
+									"raw": "{\r\n  \"firstName\": \"test_related\",\r\n  \"lastName\": \"related\",\r\n  \"specialties\": [\r\n    \"Radiology_new\",\r\n    \"Surgery_new\"\r\n  ]\r\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -1055,6 +1088,256 @@
 									"port": "8080",
 									"path": [
 										"vet"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "7-mongo",
+			"item": [
+				{
+					"name": "PetClinic",
+					"item": [
+						{
+							"name": "get pet-clinic details",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/pet-clinic/details",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"pet-clinic",
+										"details"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Vet-Review",
+					"item": [
+						{
+							"name": "get vet-review details",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/vet-review/details?page=0&size=10",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"vet-review",
+										"details"
+									],
+									"query": [
+										{
+											"key": "page",
+											"value": "0"
+										},
+										{
+											"key": "size",
+											"value": "10"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "save Vet-Review 1",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"firstName\": \"Alice\",\r\n  \"lastName\": \"Anderson\",\r\n  \"reviewer\": \"Fred Doe\",\r\n  \"content\": \"Excellent Doctor, cured my Cat\",\r\n  \"rating\": 8\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8080/vet-review",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"vet-review"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "save Vet-Review 2",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"firstName\": \"Alice\",\r\n  \"lastName\": \"Anderson\",\r\n  \"reviewer\": \"Peter Prince\",\r\n  \"content\": \"Excellent Doctor, cured my Dog\",\r\n  \"rating\": 9\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8080/vet-review",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"vet-review"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "save Vet-Review 3",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"firstName\": \"Alice\",\r\n  \"lastName\": \"Anderson\",\r\n  \"reviewer\": \"Mike Peters\",\r\n  \"content\": \"Excellent Doctor, but too expensive\",\r\n  \"rating\": 4\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8080/vet-review",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"vet-review"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "save Vet-Review-Fail",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"firstName\": \"Alice\",\r\n  \"lastName\": \"Anderson\",\r\n  \"reviewer\": \"Mike berman\",\r\n  \"content\": \"Excellent Doctor, cured my Dog\",\r\n  \"rating\": 9\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8080/vet-review",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"vet-review"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "get Vet-Score",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/vet-review/Alice/Anderson",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"vet-review",
+										"Alice",
+										"Anderson"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "get Vet reviews above min rating",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/vet-review/above-min-rating/Alice/Anderson?minRating=5",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"vet-review",
+										"above-min-rating",
+										"Alice",
+										"Anderson"
+									],
+									"query": [
+										{
+											"key": "minRating",
+											"value": "5"
+										}
 									]
 								}
 							},
