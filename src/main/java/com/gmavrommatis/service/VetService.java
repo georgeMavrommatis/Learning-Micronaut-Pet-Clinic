@@ -1,15 +1,17 @@
 package com.gmavrommatis.service;
 
-import com.gmavrommatis.config.domain.Specialty;
-import com.gmavrommatis.config.domain.Vet;
-import com.gmavrommatis.config.repository.SpecialtyRepository;
-import com.gmavrommatis.config.repository.VetRepository;
+import com.gmavrommatis.config.domain.l1.Specialty;
+import com.gmavrommatis.config.domain.l1.Vet;
+import com.gmavrommatis.config.repository.SpecialtyRepositoryL1;
+import com.gmavrommatis.config.repository.SpecialtyRepositoryL2;
+import com.gmavrommatis.config.repository.VetRepositoryL1;
+import com.gmavrommatis.config.repository.VetRepositoryL2;
 import com.gmavrommatis.model.request.CreateVetRequest;
 import com.gmavrommatis.model.request.UpdateVetRequest;
 import io.micronaut.transaction.annotation.Transactional;
+import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.criteria.*;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -19,19 +21,30 @@ import lombok.extern.slf4j.Slf4j;
  * Service layer for managing {@link Vet} entities and their specialties.
  *
  * @author GewrgiosMmavrommatis
+ * @version 1.0
  */
 @Singleton
 @Slf4j
 public class VetService {
 
-  private final VetRepository vetRepository;
-  private final SpecialtyRepository specialtyRepository;
+  private final VetRepositoryL2 vetRepositoryL2;
+  private final SpecialtyRepositoryL2 specialtyRepositoryL2;
+  private final VetRepositoryL1 vetRepositoryL1;
+  private final SpecialtyRepositoryL1 specialtyRepositoryL1;
 
-  @PersistenceContext private EntityManager em;
+  private EntityManager em;
 
-  public VetService(VetRepository vetRepository, SpecialtyRepository specialtyRepository) {
-    this.vetRepository = vetRepository;
-    this.specialtyRepository = specialtyRepository;
+  public VetService(
+      @Named("postgresql2") VetRepositoryL2 vetRepositoryL2,
+      @Named("postgresql2") SpecialtyRepositoryL2 specialtyRepositoryL2,
+      @Named("postgresql1") VetRepositoryL1 vetRepositoryL1,
+      @Named("postgresql1") SpecialtyRepositoryL1 specialtyRepositoryL1,
+      @Named("postgresql2") EntityManager em) {
+    this.vetRepositoryL2 = vetRepositoryL2;
+    this.specialtyRepositoryL2 = specialtyRepositoryL2;
+    this.vetRepositoryL1 = vetRepositoryL1;
+    this.specialtyRepositoryL1 = specialtyRepositoryL1;
+    this.em = em;
   }
 
   /**
@@ -39,9 +52,9 @@ public class VetService {
    *
    * @return a {@link List} of all {@link Vet} entities
    */
-  @Transactional(readOnly = true)
+  @Transactional(value = "postgresql1", readOnly = true)
   public List<Vet> findAll() {
-    return vetRepository.findAll();
+    return vetRepositoryL1.findAll();
   }
 
   /**
@@ -53,7 +66,7 @@ public class VetService {
    * @param request the {@link CreateVetRequest} containing vet details and specialty names
    * @return the persisted {@link Vet} entity with ID and specialties initialized
    */
-  @Transactional // default readOnly = false
+  @Transactional(value = "postgresql2") // default readOnly = false
   public Vet createVet(CreateVetRequest request) {
     // 1. Create a new Vet
     Vet vet =
@@ -63,7 +76,7 @@ public class VetService {
     Set<Specialty> specs = new HashSet<>();
     for (String specialtyName : request.getSpecialties()) {
       Specialty s =
-          specialtyRepository
+          specialtyRepositoryL2
               .findByName(specialtyName)
               .orElseThrow(
                   () -> new NoSuchElementException("Specialty not found: " + specialtyName));
@@ -73,7 +86,7 @@ public class VetService {
 
     // 3. Save the Vet. Hibernate will insert into vets,
     //    then into vet_specialties join-table for each Specialty
-    Vet vetResponse = vetRepository.save(vet);
+    Vet vetResponse = vetRepositoryL2.save(vet);
     // here we mimic an intentional exception to show how transactionality rollback commit to
     // database
     if (vetResponse.getFirstName().startsWith("fail")) {
@@ -92,13 +105,13 @@ public class VetService {
    * @param lastName the vet’s last name
    * @return the number of veterinarians deleted
    */
-  @Transactional
+  @Transactional(value = "postgresql2")
   public Long deleteByName(String firstName, String lastName) {
-    Optional<Vet> optionalVet = vetRepository.findByFirstNameAndLastName(firstName, lastName);
+    Optional<Vet> optionalVet = vetRepositoryL2.findByFirstNameAndLastName(firstName, lastName);
     if (optionalVet.isEmpty()) {
       throw new IllegalArgumentException("Vet " + firstName + " " + " not exists");
     }
-    return vetRepository.deleteByFirstNameAndLastName(firstName, lastName);
+    return vetRepositoryL2.deleteByFirstNameAndLastName(firstName, lastName);
   }
 
   /**
@@ -112,11 +125,11 @@ public class VetService {
    * @param req the {@link UpdateVetRequest} containing updated fields
    * @return the updated {@link Vet} entity
    */
-  @Transactional
+  @Transactional(value = "postgresql2")
   public Vet updateVetByName(String firstName, String lastName, UpdateVetRequest req) {
 
     Vet vet =
-        vetRepository
+        vetRepositoryL2
             .findByFirstNameAndLastName(firstName, lastName)
             .orElseThrow(
                 () -> new NoSuchElementException("Vet not found: " + firstName + " " + lastName));
@@ -133,7 +146,7 @@ public class VetService {
           req.getSpecialtyNames().stream()
               .map(
                   specialtyName ->
-                      specialtyRepository
+                      specialtyRepositoryL2
                           .findByName(specialtyName)
                           .orElseThrow(
                               () ->
@@ -143,7 +156,7 @@ public class VetService {
       vet.setSpecialties(specs);
     }
 
-    return vetRepository.update(vet);
+    return vetRepositoryL2.update(vet);
   }
 
   /**
@@ -165,7 +178,7 @@ public class VetService {
    *     specialties are returned
    * @return a {@link List} of {@code Vet} entities with their specialties initialized
    */
-  @Transactional
+  @Transactional(value = "postgresql2")
   public List<Vet> findByLastNameAndSpecialties(String lastName, List<String> specialtyNames) {
 
     CriteriaBuilder cb = em.getCriteriaBuilder();
@@ -199,7 +212,7 @@ public class VetService {
   /**
    * Finds veterinarians by exact last name and specialty names using a predefined JPQL query.
    *
-   * <p>Delegates to the {@link VetRepository#findByLastNameAndSpecialties(String, List)} method
+   * <p>Delegates to the {@link VetRepositoryL2#findByLastNameAndSpecialties(String, List)} method
    * annotated with {@code @Query}, which performs a JOIN FETCH on specialties and filters by last
    * name and specialty membership, returning distinct results ordered by last name.
    *
@@ -208,10 +221,10 @@ public class VetService {
    *     specialties are returned
    * @return a {@link List} of {@code Vet} entities with their specialties initialized
    */
-  @Transactional
+  @Transactional(value = "postgresql2")
   public List<Vet> findByLastNameAndSpecialtiesByQuery(
       String lastNamePrefix, List<String> specialtyNames) {
 
-    return vetRepository.findByLastNameAndSpecialties(lastNamePrefix, specialtyNames);
+    return vetRepositoryL2.findByLastNameAndSpecialties(lastNamePrefix, specialtyNames);
   }
 }

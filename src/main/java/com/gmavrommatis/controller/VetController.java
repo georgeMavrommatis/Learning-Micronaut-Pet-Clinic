@@ -1,6 +1,6 @@
 package com.gmavrommatis.controller;
 
-import com.gmavrommatis.config.domain.Vet;
+import com.gmavrommatis.config.domain.l1.Vet;
 import com.gmavrommatis.mapper.VetToVetResponseMapper;
 import com.gmavrommatis.model.request.CreateVetRequest;
 import com.gmavrommatis.model.request.UpdateVetRequest;
@@ -58,11 +58,6 @@ public class VetController {
         vetService.findByLastNameAndSpecialties(
             lastNamePrefix, specialtyNames // “false” = match *any* specialty
             );
-
-    /*With Query*/
-    /* List<Vet> vets = vetService.findByLastNameAndSpecialtiesByQuery(
-            lastNamePrefix, specialtyNames  // “false” = match *any* specialty
-    );*/
     return HttpResponse.ok(vetToVetResponseMapper.toVetResponseEagerList(vets));
   }
 

@@ -1,6 +1,6 @@
 package com.gmavrommatis.service;
 
-import com.gmavrommatis.config.domain.Vet;
+import com.gmavrommatis.config.domain.l1.Vet;
 import com.gmavrommatis.mapper.VetToPetClinicResponseMapper;
 import com.gmavrommatis.model.response.PetClinicResponse;
 import io.micronaut.transaction.annotation.Transactional;
@@ -33,7 +33,7 @@ public class PetClinicService {
    *
    * @return a {@code PetClinicResponse} containing detailed veterinarian data
    */
-  @Transactional(readOnly = true)
+  @Transactional(readOnly = true, value = "postgresql1")
   public PetClinicResponse getPetClinicDetails() {
     List<Vet> vets = vetService.findAll();
     return mapper.toDetailedResponse(vets);

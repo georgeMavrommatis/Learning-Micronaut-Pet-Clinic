@@ -1,6 +1,6 @@
 package com.gmavrommatis.mapper;
 
-import com.gmavrommatis.config.domain.Vet;
+import com.gmavrommatis.config.domain.l1.Vet;
 import com.gmavrommatis.model.response.PetClinicResponse;
 import com.gmavrommatis.model.response.VetResponse;
 import jakarta.inject.Inject;

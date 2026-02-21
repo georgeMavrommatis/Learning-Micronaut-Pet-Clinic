@@ -1,10 +1,10 @@
 {
 	"info": {
-		"_postman_id": "3a4c6407-6bcb-48bd-89ed-1a9536db34c3",
+		"_postman_id": "665eb6d3-98c0-4a3f-a4ad-febdb095721d",
 		"name": "Micronaut learning",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "11550685",
-		"_collection_link": "https://grey-comet-448886.postman.co/workspace/Generali~8cb4727b-c50c-4620-be93-298ac276c8f5/collection/11550685-3a4c6407-6bcb-48bd-89ed-1a9536db34c3?action=share&source=collection_link&creator=11550685"
+		"_collection_link": "https://grey-comet-448886.postman.co/workspace/Generali~8cb4727b-c50c-4620-be93-298ac276c8f5/collection/11550685-665eb6d3-98c0-4a3f-a4ad-febdb095721d?action=share&source=collection_link&creator=11550685"
 	},
 	"item": [
 		{
@@ -436,7 +436,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:8080/vet/Davis/Cardiology,toxicology",
+									"raw": "http://localhost:8080/vet/Clark/Cardiology,toxicology",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -444,7 +444,7 @@
 									"port": "8080",
 									"path": [
 										"vet",
-										"Davis",
+										"Clark",
 										"Cardiology,toxicology"
 									]
 								}
@@ -461,7 +461,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n  \"firstName\": \"hyy\",\r\n  \"lastName\": \"hi\",\r\n  \"specialties\": [\r\n    \"Radiology\",\r\n    \"Surgery\"\r\n  ]\r\n}",
+									"raw": "{\r\n  \"firstName\": \"hyy\",\r\n  \"lastName\": \"Clark\",\r\n  \"specialties\": [\r\n    \"Cardiology\",\r\n    \"Surgery\"\r\n  ]\r\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -696,6 +696,124 @@
 									"path": [
 										"specialty",
 										"Toxicoogist"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "4-jpa-multiple-dbs",
+			"item": [
+				{
+					"name": "PetClinic",
+					"item": [
+						{
+							"name": "get pet-clinic details",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "X-Tenant-ID",
+										"value": "tenantB",
+										"type": "text",
+										"disabled": true
+									}
+								],
+								"url": {
+									"raw": "http://localhost:8080/pet-clinic/details",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"pet-clinic",
+										"details"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Vet",
+					"item": [
+						{
+							"name": "get vets",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/vet",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"vet"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "findByLastNameAndSpecialties",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/vet/Clark/Cardiology,toxicology",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"vet",
+										"Clark",
+										"Cardiology,toxicology"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Specialty",
+					"item": [
+						{
+							"name": "get Specialties",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/specialty",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"specialty"
 									]
 								}
 							},

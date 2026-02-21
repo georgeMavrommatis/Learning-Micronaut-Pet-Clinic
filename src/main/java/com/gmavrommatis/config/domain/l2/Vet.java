@@ -1,4 +1,4 @@
-package com.gmavrommatis.config.domain;
+package com.gmavrommatis.config.domain.l2;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;

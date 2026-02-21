@@ -1,19 +1,35 @@
 package com.gmavrommatis.config.repository;
 
-import com.gmavrommatis.config.domain.Vet;
+import com.gmavrommatis.config.domain.l1.Vet;
 import io.micronaut.data.annotation.Query;
 import io.micronaut.data.annotation.Repository;
 import io.micronaut.data.jpa.repository.JpaRepository;
+import jakarta.inject.Named;
 import java.util.List;
 import java.util.Optional;
 
 /**
- * Repository interface for {@link Vet} entities.
+ * Micronaut Data JPA repository for {@link Vet} entities.
+ *
+ * <p>Provides CRUD operations and custom queries for veterinarians. This repository is qualified
+ * and named with "postgresql2" to distinguish it from other {@code VetRepository} beans in the
+ * application context.
+ *
+ * <h3>Bean Configuration</h3>
+ *
+ * <ul>
+ *   <li>{@code @Repository("postgresql2")} – registers this interface as a Bean with the name
+ *       "postgresql2".
+ *   <li>{@code @Named("postgresql2")} – allows injection by the qualifier "postgresql2".
+ * </ul>
  *
  * @author GewrgiosMmavrommatis
+ * @version 1.0
  */
-@Repository
-public interface VetRepository extends JpaRepository<Vet, Long> {
+@SuppressWarnings("unused")
+@Named("postgresql1")
+@Repository("postgresql1")
+public interface VetRepositoryL1 extends JpaRepository<Vet, Long> {
 
   /**
    * Deletes all veterinarians matching the given first and last name.
