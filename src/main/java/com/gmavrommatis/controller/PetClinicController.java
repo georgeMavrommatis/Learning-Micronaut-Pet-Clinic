@@ -2,10 +2,12 @@ package com.gmavrommatis.controller;
 
 import com.gmavrommatis.model.response.PetClinicResponse;
 import com.gmavrommatis.service.PetClinicService;
+import io.micronaut.data.model.Pageable;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
-import lombok.extern.slf4j.Slf4j;
+import io.micronaut.http.annotation.QueryValue;
+import reactor.core.publisher.Mono;
 
 /**
  * REST controller for fetching Pet Clinic details.
@@ -13,7 +15,6 @@ import lombok.extern.slf4j.Slf4j;
  * @author GewrgiosMmavrommatis
  */
 @Controller("/pet-clinic")
-@Slf4j
 public class PetClinicController {
 
   private final PetClinicService petClinicService;
@@ -23,16 +24,20 @@ public class PetClinicController {
   }
 
   /**
-   * Retrieves basic Pet Clinic details.
+   * Retrieves paginated Pet Clinic details in a non-blocking, reactive manner.
    *
-   * @return the {@link PetClinicResponse}
+   * <p>Supports pagination via the {@code page} (zero-based index) and {@code size} (items per
+   * page) query parameters. Delegates to the service layer to fetch a {@link PetClinicResponse}
+   * wrapped in a {@code Mono}, then maps it to an {@code HttpResponse} with status 200 OK.
+   *
+   * @param page zero-based page index (defaults to 0 if not specified)
+   * @param size the maximum number of items per page (defaults to 10 if not specified)
+   * @return a {@code Mono<HttpResponse<PetClinicResponse>>} that, when subscribed to, emits an HTTP
+   *     200 OK response containing the paginated clinic data
    */
   @Get("/details")
-  public HttpResponse<PetClinicResponse> petClinicDetails() {
-
-    String threadName = Thread.currentThread().getName();
-    String pool = threadName.contains("nioEventLoopGroup") ? "EVENT-LOOP" : "WORKER";
-    log.info("→ executed on {}", pool);
-    return HttpResponse.ok(petClinicService.getPetClinicDetails());
+  public Mono<HttpResponse<PetClinicResponse>> petClinicDetails(
+      @QueryValue(defaultValue = "0") int page, @QueryValue(defaultValue = "10") int size) {
+    return petClinicService.getPetClinicDetails(Pageable.from(page, size)).map(HttpResponse::ok);
   }
 }

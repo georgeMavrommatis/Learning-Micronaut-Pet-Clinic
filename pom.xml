@@ -56,30 +56,24 @@
       <scope>provided</scope>
     </dependency>
 
-    <!-- JPA and Hibernate -->
+    <!-- JPA and Hibernate reactive, handles transactions and sessions -->
     <dependency>
       <groupId>io.micronaut.data</groupId>
-      <artifactId>micronaut-data-hibernate-jpa</artifactId>
+      <artifactId>micronaut-data-hibernate-reactive</artifactId>
       <scope>compile</scope>
     </dependency>
 
-    <!-- JDBC Driver (e.g., for PostgreSQL) -->
+    <!--Hibernate Reactive cannot use the blocking JDBC driver— it needs a non-blocking, Netty-based driver under the covers.-->
     <dependency>
-      <groupId>org.postgresql</groupId>
-      <artifactId>postgresql</artifactId>
-    </dependency>
-
-    <!-- Provides HikariCP DataSource support for efficient JDBC connection pooling -->
-    <dependency>
-      <groupId>io.micronaut.sql</groupId>
-      <artifactId>micronaut-jdbc-hikari</artifactId>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-pg-client</artifactId>
       <scope>compile</scope>
     </dependency>
 
-    <!-- Micronaut Data Transaction Hibernate dependency: -->
+    <!-- Reactor HTTP client and Reactor integration (converters, instrumentation, ability to return Reactor types from our controllers, etc.)  -->
     <dependency>
-      <groupId>io.micronaut.data</groupId>
-      <artifactId>micronaut-data-tx-hibernate</artifactId>
+      <groupId>io.micronaut.reactor</groupId>
+      <artifactId>micronaut-reactor</artifactId>
       <scope>compile</scope>
     </dependency>
 
@@ -90,21 +84,6 @@
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
       <scope>test</scope>
-    </dependency>
-
-    <!--Provides the @MongoRepository interfaces, query annotations,
-        and the annotation-processor that generates DAO implementations.-->
-    <dependency>
-      <groupId>io.micronaut.data</groupId>
-      <artifactId>micronaut-data-mongodb</artifactId>
-    </dependency>
-
-    <!--The actual MongoDB Java driver that implements the blocking (synchronous) client API.
-        Micronaut auto-configures a com.mongodb.client.MongoClient bean from this driver,
-        which the generated repositories then use under the hood.-->
-    <dependency>
-      <groupId>org.mongodb</groupId>
-      <artifactId>mongodb-driver-sync</artifactId>
     </dependency>
 
     <!-- MapStruct -->
@@ -200,13 +179,7 @@
               <artifactId>micronaut-data-processor</artifactId>
             </path>
 
-            <!-- 6) Necessary for Micronaut Data AOT configuration -->
-            <path>
-              <groupId>io.micronaut.data</groupId>
-              <artifactId>micronaut-data-document-processor</artifactId>
-            </path>
-
-            <!-- 7) Any other APTs you need (e.g. Micronaut HTTP validation) -->
+            <!-- 6) Any other APTs you need (e.g. Micronaut HTTP validation) -->
             <path>
               <groupId>io.micronaut</groupId>
               <artifactId>micronaut-http-validation</artifactId>

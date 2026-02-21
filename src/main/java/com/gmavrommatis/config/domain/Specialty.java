@@ -1,4 +1,4 @@
-package com.gmavrommatis.config.jpa.domain;
+package com.gmavrommatis.config.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.micronaut.core.annotation.Introspected;
@@ -47,13 +47,7 @@ public class Specialty {
   @Column(name = "name", nullable = false, unique = true)
   private String name;
 
-  /**
-   * The set of veterinarians associated with this specialty.
-   *
-   * <p>This is the inverse side of the {@link Vet#specialties} relationship. Lazy-loaded to avoid
-   * unnecessary fetching.
-   */
   @JsonIgnore
-  @ManyToMany(mappedBy = "specialties", fetch = FetchType.LAZY)
+  @ManyToMany(mappedBy = "specialties", fetch = FetchType.EAGER)
   private Set<Vet> vets = new HashSet<>();
 }
