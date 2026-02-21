@@ -1,5 +1,6 @@
 package com.gmavrommatis.model.request;
 
+import com.gmavrommatis.validation.UpdateVetRequestValidation;
 import io.micronaut.core.annotation.Introspected;
 import io.micronaut.serde.annotation.Serdeable;
 import java.util.Set;
@@ -12,6 +13,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@UpdateVetRequestValidation
 public class UpdateVetRequest {
   /** New first name; required for full replace, or leave blank for no change */
   private String firstName;

@@ -2,12 +2,11 @@ package com.gmavrommatis.model.request;
 
 import io.micronaut.core.annotation.Introspected;
 import io.micronaut.serde.annotation.Serdeable;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import java.util.HashSet;
 import java.util.Set;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Introspected
 @Serdeable
@@ -17,9 +16,10 @@ import lombok.Setter;
 @Setter
 public class CreateVetRequest {
 
-  private String firstName;
+  @NotBlank private String firstName;
 
-  private String lastName;
+  @NotBlank private String lastName;
 
+  @Size(min = 1, max = 100)
   private Set<String> specialties = new HashSet<>();
 }

@@ -2,6 +2,7 @@ package com.gmavrommatis.model.request;
 
 import io.micronaut.core.annotation.Introspected;
 import io.micronaut.serde.annotation.Serdeable;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -11,5 +12,5 @@ import lombok.NoArgsConstructor;
 @Serdeable
 public class SpecialtyRequest {
 
-  private String name;
+  @NotBlank private String name;
 }

@@ -2,6 +2,7 @@ package com.gmavrommatis.model.request;
 
 import io.micronaut.core.annotation.Introspected;
 import io.micronaut.serde.annotation.Serdeable;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,13 +16,21 @@ import lombok.Setter;
 @Setter
 public class CreateVetReviewRequest {
 
-  private String firstName;
+  @NotBlank private String firstName;
 
-  private String lastName;
+  @NotBlank private String lastName;
 
-  private String reviewer;
+  @NotBlank private String reviewer;
 
-  private String content;
+  @NotBlank private String content;
 
-  private short rating;
+  @NotNull
+  @Min(1)
+  @Max(9)
+  /*only check fraction for float double BigDecimal etc.
+  because by the time Bean Validation runs, this  property will already be a Short/Integer etc., and
+  any fractional part has been thrown away*/
+  // (client needs to know what is expected)
+  @Digits(integer = 2, fraction = 1)
+  private Float rating;
 }

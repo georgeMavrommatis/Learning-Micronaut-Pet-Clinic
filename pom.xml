@@ -161,6 +161,12 @@
       <version>${mapstruct.version}</version>
     </dependency>
 
+    <!--Jakarta validation-->
+    <dependency>
+      <groupId>jakarta.validation</groupId>
+      <artifactId>jakarta.validation-api</artifactId>
+    </dependency>
+
     <!--To expose controllers and HTTP routes-->
     <dependency>
       <groupId>io.micronaut</groupId>
@@ -267,6 +273,12 @@
             <path>
               <groupId>io.micronaut</groupId>
               <artifactId>micronaut-http-validation</artifactId>
+            </path>
+
+            <!-- Enable Micronaut’s annotation processors -->
+            <path>
+              <groupId>io.micronaut.validation</groupId>
+              <artifactId>micronaut-validation-processor</artifactId>
             </path>
           </annotationProcessorPaths>
           <compilerArgs>

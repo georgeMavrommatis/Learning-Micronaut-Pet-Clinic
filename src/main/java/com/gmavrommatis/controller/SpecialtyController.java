@@ -6,6 +6,8 @@ import com.gmavrommatis.model.response.SpecialtyResponse;
 import com.gmavrommatis.service.SpecialtyService;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.annotation.*;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
@@ -55,7 +57,7 @@ public class SpecialtyController {
    *     SpecialtyResponse}
    */
   @Post
-  public HttpResponse<SpecialtyResponse> create(@Body SpecialtyRequest request) {
+  public HttpResponse<SpecialtyResponse> create(@Body @Valid SpecialtyRequest request) {
     Specialty created = specialtyService.create(request.getName());
     return HttpResponse.created(SpecialtyResponse.builder().name(created.getName()).build());
   }
@@ -69,7 +71,7 @@ public class SpecialtyController {
    */
   @Put("/{name}")
   public HttpResponse<SpecialtyResponse> rename(
-      @PathVariable String name, @Body SpecialtyRequest request) {
+      @PathVariable @NotBlank String name, @Body @Valid SpecialtyRequest request) { // todo check it
 
     try {
       Specialty updated = specialtyService.update(name, request.getName());

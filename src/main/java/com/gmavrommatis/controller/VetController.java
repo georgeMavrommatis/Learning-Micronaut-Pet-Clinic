@@ -9,6 +9,7 @@ import io.micronaut.data.model.Pageable;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.MutableHttpResponse;
 import io.micronaut.http.annotation.*;
+import jakarta.validation.Valid;
 import java.util.List;
 import reactor.core.publisher.Mono;
 
@@ -80,7 +81,7 @@ public class VetController {
    *     </ul>
    */
   @Post
-  public Mono<HttpResponse<VetResponse>> create(@Body CreateVetRequest request) {
+  public Mono<HttpResponse<VetResponse>> create(@Body @Valid CreateVetRequest request) {
     return vetService.createVetWithSpecialties(request).map(HttpResponse::ok);
   }
 
@@ -126,7 +127,7 @@ public class VetController {
       @QueryValue(defaultValue = "10") int size,
       @PathVariable String firstName,
       @PathVariable String lastName,
-      @Body UpdateVetRequest request) {
+      @Body @Valid UpdateVetRequest request) {
 
     return vetService
         .updateVetByName(firstName, lastName, request)

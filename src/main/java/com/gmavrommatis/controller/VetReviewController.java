@@ -12,6 +12,7 @@ import io.micronaut.data.model.Pageable;
 import io.micronaut.http.*;
 import io.micronaut.http.annotation.*;
 import io.micronaut.http.sse.Event;
+import jakarta.validation.Valid;
 import java.time.Duration;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
@@ -406,7 +407,7 @@ public class VetReviewController {
    * @return a {@code Mono<MutableHttpResponse<Object>>} emitting 201 Created or 500 Server Error
    */
   @Post
-  public Mono<MutableHttpResponse<Object>> create(@Body CreateVetReviewRequest request) {
+  public Mono<MutableHttpResponse<Object>> create(@Body @Valid CreateVetReviewRequest request) {
     return vetReviewService
         .saveReviewReactive(request)
         // on success return 201 CREATED
