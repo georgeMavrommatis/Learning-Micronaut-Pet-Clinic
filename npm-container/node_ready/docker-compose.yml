@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  web:
+    image: node:18-alpine
+    working_dir: /srv
+    volumes:
+      - ./static:/srv       # mount local “static” dir into /srv in the container
+    ports:
+      - "8000:8000"         # expose container’s 8000 on host 8000
+    command: >
+      npx --yes http-server . -p 8000

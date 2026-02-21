@@ -12,6 +12,7 @@ import io.micronaut.transaction.TransactionDefinition;
 import io.micronaut.transaction.reactive.ReactiveTransactionOperations;
 import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 /**
@@ -45,6 +46,27 @@ public class VetReviewService {
   }
 
   /**
+   * Retrieves all {@link VetReview} documents within a read-only transaction.
+   *
+   * <p>Logs the operation and then wraps the repository call in a {@link
+   * TransactionDefinition#READ_ONLY} transaction.
+   *
+   * @return a {@link Flux} emitting all {@code VetReview} instances
+   */
+  public Flux<VetReview> findAll() {
+    vetReviewRepository.count();
+    log.info("findAll");
+    return Flux.from(
+        mongoTx.withTransaction(
+            TransactionDefinition.READ_ONLY, mongoStatus -> vetReviewRepository.findAll()));
+  }
+
+  public Mono<Long> count() {
+
+    return vetReviewRepository.count().defaultIfEmpty(0L);
+  }
+
+  /**
    * Retrieves a paginated list of {@link VetReview} documents.
    *
    * <p>Executes within a read-only MongoDB transaction and returns a {@code Mono<Page<VetReview>>}
@@ -71,24 +93,29 @@ public class VetReviewService {
    *     the vet has no reviews
    */
   public Mono<VetReviewScore> findVetRatingReactive(String firstName, String lastName) {
-    return vetService
-        .findByFirstAndLastName(firstName, lastName) // Mono<Vet>
-        .flatMapMany(
-            vet ->
-                vetReviewRepository
-                    .findAllByVetId(vet.getId()) // Flux<VetReview>
-                    .map(VetReview::getRating) // Flux<Integer>
-            )
-        .collectList() // Mono<List<Integer>>
-        .map(
-            ratings -> {
-              double avg = ratings.stream().mapToInt(Short::intValue).average().orElse(0d);
-              return VetReviewScore.builder()
-                  .firstName(firstName)
-                  .lastName(lastName)
-                  .averageRating(avg)
-                  .build();
-            });
+    return Mono.from(
+        mongoTx.withTransaction(
+            TransactionDefinition.READ_ONLY,
+            mongoStatus -> // Mongo transaction
+            vetService
+                    .findByFirstAndLastName(firstName, lastName) // Mono<Vet>
+                    .flatMapMany(
+                        vet ->
+                            vetReviewRepository
+                                .findAllByVetId(vet.getId()) // Flux<VetReview>
+                                .map(VetReview::getRating) // Flux<Integer>
+                        )
+                    .collectList() // Mono<List<Integer>>
+                    .map(
+                        ratings -> { // compute average
+                          double avg =
+                              ratings.stream().mapToInt(Short::intValue).average().orElse(0d);
+                          return VetReviewScore.builder()
+                              .firstName(firstName)
+                              .lastName(lastName)
+                              .averageRating(avg)
+                              .build();
+                        })));
   }
 
   /**

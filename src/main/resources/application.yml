@@ -4,6 +4,15 @@ micronaut:
 
   server:
     thread-selection: AUTO
+    #Reference: https://guides.micronaut.io/latest/micronaut-cors-gradle-java.html
+    cors:
+      enabled: true   # turn on CORS support
+      configurations:
+        ui:
+          allowed-origins:
+            - "http://127.0.0.1:8000"
+            - "http://localhost:8000"
+
 
   data:
     r2dbc:

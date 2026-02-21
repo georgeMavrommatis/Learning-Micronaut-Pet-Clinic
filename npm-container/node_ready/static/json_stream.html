@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Vet Reviews Stream</title>
+</head>
+<body>
+<h1>Streaming Vet Reviews</h1>
+<ul id="reviews"></ul>
+
+<script>
+    async function fetchStream() {
+      // Point this to your Micronaut endpoint:
+      const resp = await fetch('http://localhost:8080/vet-review/reviewer-details/json-stream');
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder();
+      let buf = '';
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+
+        // Simple brace-count parser for concatenated JSON objects
+        let start = 0, depth = 0;
+        for (let i = 0; i < buf.length; i++) {
+          if (buf[i] === '{') depth++;
+          else if (buf[i] === '}') depth--;
+          if (depth === 0 && buf[start] === '{') {
+            const chunk = buf.slice(start, i + 1);
+            start = i + 1;
+            try {
+              const obj = JSON.parse(chunk);
+              const li = document.createElement('li');
+              li.textContent = JSON.stringify(obj);
+              document.getElementById('reviews').appendChild(li);
+            } catch (e) {
+              console.error('Failed to parse JSON chunk:', chunk, e);
+            }
+          }
+        }
+        buf = buf.slice(start);
+      }
+    }
+
+    fetchStream().catch(console.error);
+</script>
+</body>
+</html>

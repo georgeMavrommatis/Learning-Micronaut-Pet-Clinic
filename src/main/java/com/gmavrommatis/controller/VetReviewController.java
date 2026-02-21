@@ -3,13 +3,14 @@ package com.gmavrommatis.controller;
 import com.gmavrommatis.mapper.VetReviewToVetReviewResponseMapper;
 import com.gmavrommatis.model.request.CreateVetReviewRequest;
 import com.gmavrommatis.model.response.VetReviewDetails;
+import com.gmavrommatis.model.response.VetReviewResponse;
 import com.gmavrommatis.model.response.VetReviewScore;
 import com.gmavrommatis.service.VetReviewService;
 import io.micronaut.data.model.Pageable;
-import io.micronaut.http.HttpResponse;
-import io.micronaut.http.HttpStatus;
-import io.micronaut.http.MutableHttpResponse;
+import io.micronaut.http.*;
 import io.micronaut.http.annotation.*;
+import io.micronaut.http.sse.Event;
+import java.time.Duration;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
@@ -22,7 +23,6 @@ import reactor.core.publisher.Mono;
  * new reviews with reactive types.
  *
  * @author Your Name
- * @version 1.0
  */
 @Controller("/vet-review")
 @Slf4j
@@ -48,7 +48,7 @@ public class VetReviewController {
    * @return a {@code Mono<HttpResponse<VetReviewDetails>>} emitting 200 OK with paged review
    *     details
    */
-  @Get("/details")
+  @Get("/reviewer-details")
   public Mono<HttpResponse<VetReviewDetails>> findVetReviews(
       @QueryValue(defaultValue = "0") int page, @QueryValue(defaultValue = "10") int size) {
     Pageable pageable = Pageable.from(page, size);
@@ -67,6 +67,114 @@ public class VetReviewController {
                       .totalElements(vetReviewPage.getTotalSize())
                       .build();
               return HttpResponse.ok(details);
+            });
+  }
+
+  /**
+   * Streams all reviews as a JSON‐encoded sequence.
+   *
+   * <p>The HTTP response is sent with chunked transfer encoding, and each {@code VetReviewResponse}
+   * is emitted once every second. The {@code Expected-Stream-Size} header reports the total number
+   * of reviews available at the time the request is received.
+   *
+   * <ul>
+   *   <li>If the count operation fails, it defaults the header value to 0.
+   *   <li>If an individual review fails to serialize, it is skipped and the stream continues.
+   *   <li>If building the HTTP response fails, a 500 status with an empty stream is returned.
+   * </ul>
+   *
+   * @return a non-blocking HTTP response whose body is a {@code Flux<VetReviewResponse>} that emits
+   *     one review per second
+   */
+  @Get(uri = "/reviewer-details/json-stream", produces = MediaType.APPLICATION_JSON_STREAM)
+  public Mono<MutableHttpResponse<Flux<VetReviewResponse>>> jsonStreamReviews() {
+    Mono<Long> countMono =
+        vetReviewService
+            .count()
+            .onErrorResume(
+                err -> {
+                  // log and default to zero if the count fails
+                  log.error("Failed to count reviews, defaulting to 0", err);
+                  return Mono.just(0L);
+                });
+
+    Flux<VetReviewResponse> stream =
+        vetReviewService
+            .findAll()
+            .delayElements(Duration.ofSeconds(1))
+            .map(mapper::toVetReviewResponse)
+            .doOnNext(vetReviewResponse -> log.info("Working on review: {}", vetReviewResponse))
+            .onErrorContinue(
+                (throwable, obj) -> log.warn("Skipping one review due to error", throwable));
+
+    return countMono
+        .map(
+            count ->
+                HttpResponse.ok(stream)
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer test")
+                    .header("Expected-Stream-Size", String.valueOf(count)))
+        .onErrorResume(
+            err -> {
+              // return a 500 with an empty stream if response creation fails
+              log.error("Error building streaming response", err);
+              return Mono.just(
+                  HttpResponse.<Flux<VetReviewResponse>>serverError().body(Flux.empty()));
+            });
+  }
+
+  /**
+   * Streams all reviews as Server‐Sent Events.
+   *
+   * <p>Each review is sent as an SSE {@link Event} once every second. The {@code
+   * Expected-Stream-Size} header reports the total number of reviews at the time of subscription.
+   *
+   * <ul>
+   *   <li>If the total‐count lookup fails, it is logged and defaults to 0.
+   *   <li>If a single review fails to map or serialize, that event is skipped.
+   *   <li>If the HTTP response cannot be constructed, a 500 status with a single SSE comment
+   *       describing the error is returned.
+   * </ul>
+   *
+   * @return a non-blocking HTTP response whose body is a {@code Flux<Event<VetReviewResponse>>}
+   *     representing a live stream of review events
+   */
+  @Get(uri = "/reviewer-details/text-event-stream", produces = MediaType.TEXT_EVENT_STREAM)
+  public Mono<MutableHttpResponse<Flux<Event<VetReviewResponse>>>> eventStreamReviews() {
+    Mono<Long> countMono =
+        vetReviewService
+            .count()
+            .onErrorResume(
+                err -> {
+                  log.error("Failed to fetch total count – defaulting to 0", err);
+                  return Mono.just(0L);
+                });
+
+    Flux<Event<VetReviewResponse>> eventFlux =
+        vetReviewService
+            .findAll()
+            .delayElements(Duration.ofSeconds(1))
+            .map(mapper::toVetReviewResponse)
+            .doOnNext(vetReviewResponse -> log.info("Working on review: {}", vetReviewResponse))
+            .map(Event::of)
+            .onErrorContinue(
+                (throwable, obj) ->
+                    log.warn("Skipping one VetReview due to error: {}", obj, throwable));
+
+    return countMono
+        .map(
+            count ->
+                HttpResponse.ok(eventFlux)
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer <test>")
+                    .header("X-Custom-Header", "my-value")
+                    .header("Expected-Stream-Size", String.valueOf(count)))
+        .onErrorResume(
+            err -> {
+              log.error("Failed to build SSE response", err);
+              Event<VetReviewResponse> errorEvent =
+                  Event.<VetReviewResponse>of(null).comment("Stream error: " + err.getMessage());
+              return Mono.just(
+                  HttpResponse.<Flux<Event<VetReviewResponse>>>serverError()
+                      .body(Flux.just(errorEvent)));
             });
   }
 
