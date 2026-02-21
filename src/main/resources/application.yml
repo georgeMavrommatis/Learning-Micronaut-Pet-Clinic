@@ -11,7 +11,14 @@ micronaut:
 
 logger:
   levels:
-    io.r2dbc.postgresql: DEBUG
+    org.mongodb.driver.connection: DEBUG
+    reactor.core.publisher: TRACE
+#    org.mongodb.driver.cluster: DEBUG
+    org.mongodb.driver.protocol.command: DEBUG
+    org.mongodb.driver.protocol.query: DEBUG
+
+
+
 
 r2dbc:
   datasources:
@@ -28,3 +35,22 @@ r2dbc:
         initialSize: 4 #How many connections to open immediately on startup.
         poolName: r2dbc #A logical name for the pool instance.
         registerJmx: false # Don’t expose via JMX
+
+#mongo Reference: https://micronaut-projects.github.io/micronaut-mongodb/5.5.0/guide/configurationreference.html
+mongodb:
+  uri: "mongodb://localhost:27017/petclinic"
+  # 1) Enable POJO mapping (scans your package for getters/setters)
+  package-names:
+    - "com.gmavrommatis.config.mongo.document"
+  automatic-class-models: true
+  # 2) All our pool settings in one place
+  connection-pool:
+    max-size: 5                    # connectionsPerHost
+    min-size: 5                     # minConnectionsPerHost
+    max-wait-time: 2s               # maxWaitTime
+    max-connection-idle-time: 60s   # maxConnectionIdleTime
+    max-connection-life-time: 120s  # maxConnectionLifeTime
+    # (Reactive driver no longer uses threadsAllowedToBlock…)
+    maintenance-initial-delay: 0s
+    maintenance-frequency: 5m
+

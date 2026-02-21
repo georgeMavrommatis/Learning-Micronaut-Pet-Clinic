@@ -1,6 +1,6 @@
 package com.gmavrommatis.controller;
 
-import com.gmavrommatis.config.domain.Specialty;
+import com.gmavrommatis.config.r2dbc.domain.Specialty;
 import com.gmavrommatis.model.request.SpecialtyRequest;
 import com.gmavrommatis.model.response.SpecialtyResponse;
 import com.gmavrommatis.service.SpecialtyService;

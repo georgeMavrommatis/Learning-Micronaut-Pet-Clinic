@@ -1,6 +1,6 @@
 package com.gmavrommatis.mapper;
 
-import com.gmavrommatis.config.domain.Specialty;
+import com.gmavrommatis.config.r2dbc.domain.Specialty;
 import com.gmavrommatis.model.response.SpecialtyResponse;
 import java.util.List;
 import org.mapstruct.Mapper;

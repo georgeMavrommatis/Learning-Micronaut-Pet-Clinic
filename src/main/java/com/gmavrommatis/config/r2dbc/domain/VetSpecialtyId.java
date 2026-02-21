@@ -1,4 +1,4 @@
-package com.gmavrommatis.config.domain;
+package com.gmavrommatis.config.r2dbc.domain;
 
 import io.micronaut.data.annotation.MappedProperty;
 import io.micronaut.serde.annotation.Serdeable;
@@ -15,6 +15,7 @@ import lombok.NoArgsConstructor;
  * between them.
  *
  * @author Your Name
+ * @version 1.0
  */
 @Serdeable
 @Data
@@ -24,7 +25,7 @@ import lombok.NoArgsConstructor;
 public class VetSpecialtyId implements Serializable {
 
   /**
-   * The identifier of the {@link Vet}.
+   * The identifier of the {@link com.gmavrommatis.config.r2dbc.domain.Vet}.
    *
    * <p>Mapped to the <code>vet_id</code> column in the join table.
    */
@@ -32,7 +33,7 @@ public class VetSpecialtyId implements Serializable {
   private Long vetId;
 
   /**
-   * The identifier of the {@link Specialty}.
+   * The identifier of the {@link com.gmavrommatis.config.r2dbc.domain.Specialty}.
    *
    * <p>Mapped to the <code>specialty_id</code> column in the join table.
    */

@@ -100,6 +100,31 @@
       <version>0.8.13.RELEASE</version>
     </dependency>
 
+    <!-- Provides Micronaut Data repositories for MongoDB with reactive support. -->
+    <dependency>
+      <groupId>io.micronaut.data</groupId>
+      <artifactId>micronaut-data-mongodb</artifactId>
+      <scope>compile</scope>
+    </dependency>
+
+    <!-- Provides the core Micronaut integration with the reactive MongoDB driver.
+         Supports configuration, connection pooling, and reactive transaction management
+         for MongoDB within a Micronaut application. -->
+    <dependency>
+      <groupId>io.micronaut.mongodb</groupId>
+      <artifactId>micronaut-mongo-reactive</artifactId>
+      <scope>compile</scope>
+    </dependency>
+
+    <!-- The official MongoDB Reactive Streams Java driver.
+         Provides non-blocking, asynchronous interaction with MongoDB.
+         Works with reactive libraries like Reactor and RxJava. -->
+    <dependency>
+      <groupId>org.mongodb</groupId>
+      <artifactId>mongodb-driver-reactivestreams</artifactId>
+    </dependency>
+
+    <!-- Reactor integration for Micronaut -->
     <dependency>
       <groupId>io.micronaut.reactor</groupId>
       <artifactId>micronaut-reactor</artifactId>
@@ -212,6 +237,16 @@
             <path>
               <groupId>io.micronaut.data</groupId>
               <artifactId>micronaut-data-processor</artifactId>
+            </path>
+
+            <!-- Annotation processor for Micronaut Data -->
+            <!-- Used at compile-time to generate repository implementations automatically.
+                 Processes annotations like @Repository, @Query, and entity mappings.
+                 Necessary for Micronaut Data to generate efficient, compile-time code
+                 for MongoDB or other supported databases. -->
+            <path>
+              <groupId>io.micronaut.data</groupId>
+              <artifactId>micronaut-data-document-processor</artifactId>
             </path>
 
             <!-- 6) Any other APTs you need (e.g. Micronaut HTTP validation) -->

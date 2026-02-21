@@ -1,4 +1,4 @@
-package com.gmavrommatis.config.domain;
+package com.gmavrommatis.config.r2dbc.domain;
 
 import io.micronaut.core.annotation.Introspected;
 import io.micronaut.data.annotation.GeneratedValue;
@@ -19,6 +19,7 @@ import lombok.Setter;
  * serialization/deserialization via Micronaut Serde.
  *
  * @author GewrgiosMmavrommatis
+ * @version 1.0
  */
 @Introspected
 @Serdeable

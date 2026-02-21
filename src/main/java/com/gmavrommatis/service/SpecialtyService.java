@@ -1,7 +1,7 @@
 package com.gmavrommatis.service;
 
-import com.gmavrommatis.config.domain.Specialty;
-import com.gmavrommatis.config.repository.SpecialtyRepository;
+import com.gmavrommatis.config.r2dbc.domain.Specialty;
+import com.gmavrommatis.config.r2dbc.repository.SpecialtyRepository;
 import io.micronaut.transaction.TransactionDefinition;
 import io.micronaut.transaction.reactive.ReactiveTransactionOperations;
 import io.r2dbc.spi.Connection;

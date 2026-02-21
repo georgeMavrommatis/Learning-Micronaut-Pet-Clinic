@@ -1,7 +1,7 @@
-package com.gmavrommatis.config.repository;
+package com.gmavrommatis.config.r2dbc.repository;
 
-import com.gmavrommatis.config.domain.VetSpecialty;
-import com.gmavrommatis.config.domain.VetSpecialtyId;
+import com.gmavrommatis.config.r2dbc.domain.VetSpecialty;
+import com.gmavrommatis.config.r2dbc.domain.VetSpecialtyId;
 import io.micronaut.data.annotation.Query;
 import io.micronaut.data.model.query.builder.sql.Dialect;
 import io.micronaut.data.r2dbc.annotation.R2dbcRepository;
@@ -16,6 +16,7 @@ import reactor.core.publisher.Mono;
  * non-blocking manner using PostgreSQL as the target database.
  *
  * @author Your Name
+ * @version 1.0
  */
 @R2dbcRepository(dialect = Dialect.POSTGRES)
 public interface VetSpecialtyRepository

@@ -1,4 +1,4 @@
-package com.gmavrommatis.config.domain;
+package com.gmavrommatis.config.r2dbc.domain;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.micronaut.core.annotation.Introspected;
@@ -20,6 +20,7 @@ import lombok.Setter;
  * serialization.
  *
  * @author GewrgiosMmavrommatis
+ * @version 1.0
  */
 @Introspected
 @Serdeable

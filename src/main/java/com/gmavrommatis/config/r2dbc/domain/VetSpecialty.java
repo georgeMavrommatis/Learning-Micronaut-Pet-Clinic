@@ -1,4 +1,4 @@
-package com.gmavrommatis.config.domain;
+package com.gmavrommatis.config.r2dbc.domain;
 
 import io.micronaut.core.annotation.Introspected;
 import io.micronaut.data.annotation.EmbeddedId;
@@ -16,6 +16,7 @@ import lombok.Setter;
  * composite key {@link VetSpecialtyId} to link veterinarians and specialties.
  *
  * @author Your Name
+ * @version 1.0
  */
 @Introspected
 @Serdeable

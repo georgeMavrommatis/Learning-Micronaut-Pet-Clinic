@@ -1,12 +1,12 @@
 package com.gmavrommatis.service;
 
-import com.gmavrommatis.config.domain.Specialty;
-import com.gmavrommatis.config.domain.Vet;
-import com.gmavrommatis.config.domain.VetSpecialty;
-import com.gmavrommatis.config.domain.VetSpecialtyId;
-import com.gmavrommatis.config.repository.SpecialtyRepository;
-import com.gmavrommatis.config.repository.VetRepository;
-import com.gmavrommatis.config.repository.VetSpecialtyRepository;
+import com.gmavrommatis.config.r2dbc.domain.Specialty;
+import com.gmavrommatis.config.r2dbc.domain.Vet;
+import com.gmavrommatis.config.r2dbc.domain.VetSpecialty;
+import com.gmavrommatis.config.r2dbc.domain.VetSpecialtyId;
+import com.gmavrommatis.config.r2dbc.repository.SpecialtyRepository;
+import com.gmavrommatis.config.r2dbc.repository.VetRepository;
+import com.gmavrommatis.config.r2dbc.repository.VetSpecialtyRepository;
 import com.gmavrommatis.mapper.SpecialtyToSpecialtyResponseMapper;
 import com.gmavrommatis.mapper.VetToVetResponseMapper;
 import com.gmavrommatis.model.request.CreateVetRequest;
