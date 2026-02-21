@@ -10,56 +10,57 @@ micronaut:
       configurations:
         ui:
           allowed-origins:
-            - "http://127.0.0.1:8000"
-            - "http://localhost:8000"
-  openapi:
-    views:
-      #swagger-ui.enabled=true: Enables generation/serving of Swagger UI (the classic Swagger web-based UI).
-      #swagger-ui.theme=flattop: Changes look & feel of the Swagger UI: colors, spacing, fonts, and some component styles to flattop visual theme
-      spec: "swagger-ui.enabled=true,swagger-ui.theme=flattop"
-    property:
-      naming:
-        strategy: "KEBAB_CASE" #Controls how property names (fields in DTOs / schemas) are written in the generated OpenAPI schema.
-    target:
-      file: "openapi.yml" #Tells the OpenAPI generator the target filename for the generated OpenAPI spec.
-  router:
-    static-resources:
-      # Serve any files placed under META-INF/swagger on the classpath
-      # Example: target/classes/META-INF/swagger/myspecfile.yml
-      swagger:
-        # Classpath folder to serve
-        paths: classpath:META-INF/swagger
-        # Public URL mapping (all requests under /swagger/ will be served from the above classpath)
-        # Example: http://localhost:8080/swagger/myspecfile.yml -> META-INF/swagger/myspecfile.yml
-        mapping: /swagger/**
+            - http://127.0.0.1:8000
+#          allowed-methods: [ GET, POST, PUT, PATCH, DELETE, OPTIONS ]
+#          allowed-headers: [ Content-Type, X-CSRF-TOKEN, Authorization ]
+          allow-credentials: true
+  session:
+    max-inactive-interval: 30m     # 30 minutes
+    http:
+      #—— Cookie name (defaults to 'SESSION')
+      cookie-name: SESSION
+      #—— Path & domain
+      cookie-path: /
+      #—— Secure? (if true, cookie is only sent over HTTPS)
+      cookie-secure: true
+      #—— SameSite attribute: Strict, Lax or None
+      cookie-same-site: None
+      #login-success: /
+      login-failure: /login
+      #—— Alternatively, we can pull the session ID from headers instead of cookies:
+      # header-names: X-SESSION-ID
+  security:
+    enabled: true                 # turn on the security module outright
+    #Reference: https://micronaut-projects.github.io/micronaut-security/latest/guide/#builtInHandlers
+    # use HTTP session auth
+    authentication: session
+    endpoints:
+      login:
+        enabled: true       #by default is true when security session is enabled
+        post-content-types:
+          - application/json
+      logout:
+        enabled: true       #by default is true when security session is enabled
+    intercept-url-map:
+      - pattern: /login
+        access: isAnonymous()   # allow unauthenticated clients to hit /login
+      - pattern: /logout
+        access: isAuthenticated()
+      - pattern: /**
+        access: isAuthenticated()
 
-      # Serve the Swagger UI static assets that Micronaut places under
-      # META-INF/swagger/views/swagger-ui (when swagger-ui is enabled).
-      swagger-ui:
-        # Classpath folder containing the UI HTML/CSS/JS
-        paths: classpath:META-INF/swagger/views/swagger-ui
-        # Public URL mapping for the UI
-        # Example: http://localhost:8080/swagger-ui/index.html loads the interactive Swagger UI
-        mapping: /swagger-ui/**
+
   data:
     r2dbc:
       dialect: POSTGRES
 
-#Reference: https://micronaut-projects.github.io/micronaut-kafka/latest/guide/#kafkaQuickStart:~:text=Copy%20to%20Clipboard-,Configuring%20Kafka,-The%20minimum%20requirement
-kafka:
-  bootstrap:
-    servers: localhost:9092
-
 logger:
   levels:
-#    org.mongodb.driver.connection: DEBUG
-#    reactor.core.publisher: TRACE
+    org.mongodb.driver.connection: DEBUG
+    reactor.core.publisher: TRACE
 #    org.mongodb.driver.cluster: DEBUG
-#    org.mongodb.driver.protocol.command: DEBUG
-#    org.mongodb.driver.protocol.query: DEBUG
-#    org.apache.kafka: DEBUG
-#    org.apache.kafka.clients.producer: DEBUG
-#    io.micronaut.configuration.kafka: TRACE
+    org.mongodb.driver.protocol.command: DEBUG
+    org.mongodb.driver.protocol.query: DEBUG
 
 
 # Start the WebSocket server
@@ -101,3 +102,25 @@ mongodb:
     maintenance-initial-delay: 0s
     maintenance-frequency: 5m
 
+identity-store:
+  users:
+    alice: alice@1
+    bob: bob@2
+    charlie: charlie@3
+  roles:
+    alice: ADMIN
+    bob: VIEW
+    charlie: VIEW
+  attributes:
+    alice:
+      email: alice@example.com
+      fullName: Alice Smith
+      department: Veterinary
+    bob:
+      email: bob@example.com
+      fullName: Bob Daniels
+      department: Customer
+    charlie:
+      email: charlie@example.com
+      fullName: Charlie Jones
+      department: Customer

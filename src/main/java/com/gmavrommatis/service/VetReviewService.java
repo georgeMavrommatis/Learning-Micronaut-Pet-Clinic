@@ -1,12 +1,9 @@
 package com.gmavrommatis.service;
 
-import com.gmavrommatis.config.kafka.*;
-import com.gmavrommatis.config.kafka.producer.*;
 import com.gmavrommatis.config.mongo.document.VetReview;
 import com.gmavrommatis.config.mongo.operations.VetReviewMongoClient;
 import com.gmavrommatis.config.mongo.repository.VetReviewRepository;
-import com.gmavrommatis.mapper.CreateVetReviewRequestMapper;
-import com.gmavrommatis.model.kafka.VetReviewNotificationEvent;
+import com.gmavrommatis.mapper.CreateVetReviewRequestToVetReviewMapper;
 import com.gmavrommatis.model.request.CreateVetReviewRequest;
 import com.gmavrommatis.model.response.VetReviewScore;
 import com.mongodb.reactivestreams.client.ClientSession;
@@ -14,17 +11,10 @@ import io.micronaut.data.model.Page;
 import io.micronaut.data.model.Pageable;
 import io.micronaut.transaction.TransactionDefinition;
 import io.micronaut.transaction.reactive.ReactiveTransactionOperations;
-import io.netty.channel.EventLoopGroup;
 import jakarta.inject.Singleton;
-import java.nio.charset.StandardCharsets;
-import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.kafka.common.header.internals.RecordHeader;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
 
 /**
  * Service for managing veterinarian reviews in a reactive, non-blocking manner using MongoDB
@@ -44,34 +34,19 @@ public class VetReviewService {
   private final VetReviewRepository vetReviewRepository;
   private final VetReviewMongoClient vetReviewMongoClient;
   private final VetService vetService;
-  private final CreateVetReviewRequestMapper mapper;
-  private final VetReviewNotificationProducer vetReviewNotificationProducer;
-  private final VetReviewNotificationProducerBatch vetReviewNotificationProducerBatch;
-  private final TransactionalProducerPoolManager transactionalProducerPoolManager;
-  private VetReviewNotificationProducerTransactional producer = null;
-  private VetReviewManualTransactionalProducer manualWrapper = null;
-
-  private final EventLoopGroup eventLoopGroup;
+  private final CreateVetReviewRequestToVetReviewMapper mapper;
 
   public VetReviewService(
       ReactiveTransactionOperations<ClientSession> mongoTx,
       VetReviewRepository vetReviewRepository,
       VetReviewMongoClient vetReviewMongoClient,
       VetService vetService,
-      CreateVetReviewRequestMapper mapper,
-      VetReviewNotificationProducer vetReviewNotificationProducer,
-      VetReviewNotificationProducerBatch vetReviewNotificationProducerBatch,
-      TransactionalProducerPoolManager transactionalProducerPoolManager,
-      EventLoopGroup eventLoopGroup) {
+      CreateVetReviewRequestToVetReviewMapper mapper) {
     this.mongoTx = mongoTx;
     this.vetReviewRepository = vetReviewRepository;
     this.vetReviewMongoClient = vetReviewMongoClient;
     this.vetService = vetService;
     this.mapper = mapper;
-    this.vetReviewNotificationProducer = vetReviewNotificationProducer;
-    this.vetReviewNotificationProducerBatch = vetReviewNotificationProducerBatch;
-    this.transactionalProducerPoolManager = transactionalProducerPoolManager;
-    this.eventLoopGroup = eventLoopGroup;
   }
 
   /**
@@ -177,147 +152,27 @@ public class VetReviewService {
    * @return a {@link Mono} emitting the saved {@link VetReview}
    */
   public Mono<VetReview> saveReviewReactive(CreateVetReviewRequest request) {
-    log.info("saveReviewReactive");
     return Mono.from(
-            mongoTx.withTransaction(
-                TransactionDefinition.DEFAULT,
-                mongoStatus -> // Mongo Default transaction
-                vetService
-                        .findByFirstAndLastName(request.getFirstName(), request.getLastName())
-                        .flatMap(
-                            vet -> {
-                              log.info("creating a review");
-                              VetReview r = mapper.toVetReview(request);
-                              r.setVetId(vet.getId());
-                              return Mono.just(r);
-                            })
-                        .doOnNext(saved -> log.info("saving a review"))
-                        /* this is intentionally offloaded to worker threads by Micronaut Mongo transactionality.*/
-                        .flatMap(vetReviewRepository::save)
-                        .doOnNext(saved -> log.info("saved a review"))
-                        /* thus, because we have more reactive event loop related work, is best to return the chain back to event loop.*/
-                        .publishOn(Schedulers.fromExecutor(eventLoopGroup.next()))
-                        .doOnNext(saved -> log.info("lets get directed back to event loop for now"))
-                        .flatMap(
-                            saved -> {
-                              log.info("Checking for intentional error");
-                              if ("Mike berman".equals(saved.getReviewer())) {
-                                // any exception here will trigger a rollback
-                                return Mono.error(new RuntimeException("Intentional fail"));
-                              } else {
-                                return Mono.just(saved);
-                              }
-                            })))
-        .doOnNext(saved -> log.info("What thread am i running in?"))
-        // At this point Mongo transaction has COMMITTED successfully
-        .flatMap(
-            saved ->
-                Mono.fromRunnable(() -> sendAllKafkaEvents(saved, request))
-                    /*here subscribeOn is safe as the entire upstream is the Runnable not the chain, Downstream is everything else */
-                    .subscribeOn(
-                        Schedulers.boundedElastic()) // run Kafka blocking work off event-loop
-                    .thenReturn(saved) // return saved entity AFTER Kafka sends finish
-            )
-        .doOnNext(saved -> log.info("What thread did Kafka producers send me?"))
-        /*The above flatMap executed an offloaded work, now we need to ensure the work is returned back to Event-Loop*/
-        .publishOn(Schedulers.fromExecutor(eventLoopGroup.next()))
-        .doOnNext(saved -> log.info("finished saveReviewReactive"));
-  }
-
-  private void sendAllKafkaEvents(VetReview saved, CreateVetReviewRequest request) {
-
-    log.info("Producing Kafka review notifications...");
-
-    // 1) Basic Event
-    vetReviewNotificationProducer.sendReview(mapper.toVetReviewNotificationEvent(request));
-
-    // 2) Event with Header
-    vetReviewNotificationProducer.sendReviewWithHeader(
-        mapper.toVetReviewNotificationEvent(request), "CustomHeader");
-
-    // 3) Partition ID
-    vetReviewNotificationProducer.sendReviewWithEventId(
-        1, mapper.toVetReviewNotificationEvent(request));
-
-    // 4) Event Key
-    vetReviewNotificationProducer.sendReviewWithEventKey(
-        KafkaKeys.VET_REVIEW_NOTIFICATION_KEY, mapper.toVetReviewNotificationEvent(request));
-
-    // 5) Mono send
-    vetReviewNotificationProducer
-        .sendReviewMono(mapper.toVetReviewNotificationEvent(request))
-        .subscribe();
-
-    // 6) Flux batch
-    vetReviewNotificationProducerBatch
-        .sendReviewFluxBatch(
-            Stream.generate(() -> mapper.toVetReviewNotificationEvent(request)).limit(20).toList())
-        .subscribe();
-
-    // 7) Flux ordered batch
-    vetReviewNotificationProducerBatch
-        .sendReviewFluxBatchOrdered(
-            KafkaKeys.VET_REVIEW_NOTIFICATION_KEY,
-            Flux.fromIterable(
-                Stream.generate(() -> mapper.toVetReviewNotificationEvent(request))
-                    .limit(20)
-                    .toList()))
-        .subscribe();
-
-    // 8) Transactional send using pool
-    try {
-      producer = transactionalProducerPoolManager.acquireTransactional();
-      // producer is effectively final, as it is only instantiated once with not null value.
-      producer.sendReviewWithEventKeyTransactional(
-          KafkaKeys.VET_REVIEW_NOTIFICATION_TRANSACTION_KEY,
-          "CustomHeader",
-          mapper.toVetReviewNotificationEvent(request));
-
-    } catch (Exception ex) {
-      log.error("Transactional Kafka send failed", ex);
-    } finally {
-      if (producer != null) {
-        transactionalProducerPoolManager.releaseTransactional(producer);
-      }
-    }
-
-    // 9) Manual producer transaction
-    try {
-      manualWrapper = transactionalProducerPoolManager.acquireManualTransactional();
-      KafkaProducer<String, VetReviewNotificationEvent> manualProducer =
-          manualWrapper.getProducer();
-
-      manualProducer.beginTransaction();
-
-      ProducerRecord<String, VetReviewNotificationEvent> producerRecord =
-          new ProducerRecord<>(
-              KafkaTopics.VET_REVIEW_NOTIFICATION_WITH_KEY_TRANSACTIONAL_MANUAL,
-              KafkaKeys.VET_REVIEW_NOTIFICATION_TRANSACTION_MANUAL_KEY,
-              mapper.toVetReviewNotificationEvent(request));
-
-      /*We add a header*/
-      producerRecord
-          .headers()
-          .add(new RecordHeader("My-Header", "Manual-TX".getBytes(StandardCharsets.UTF_8)));
-
-      manualProducer.send(producerRecord);
-
-      if ("Fail Kafka".equals(saved.getReviewer())) {
-        throw new RuntimeException("Intentional fail");
-      }
-
-      manualProducer.commitTransaction();
-
-    } catch (Exception ex) {
-      if (manualWrapper != null) {
-        manualWrapper.getProducer().abortTransaction();
-      }
-      log.error("Kafka manual transaction rolled back", ex);
-
-    } finally {
-      if (manualWrapper != null) {
-        transactionalProducerPoolManager.releaseManualTransactional(manualWrapper);
-      }
-    }
+        mongoTx.withTransaction(
+            TransactionDefinition.DEFAULT,
+            mongoStatus -> // Mongo Default transaction
+            vetService
+                    .findByFirstAndLastName(request.getFirstName(), request.getLastName())
+                    .flatMap(
+                        vet -> {
+                          VetReview r = mapper.toVetReview(request);
+                          r.setVetId(vet.getId());
+                          return Mono.just(r);
+                        })
+                    .flatMap(vetReviewRepository::save)
+                    .flatMap(
+                        saved -> {
+                          if ("Mike berman".equals(saved.getReviewer())) {
+                            // any exception here will trigger a rollback
+                            return Mono.error(new RuntimeException("Intentional fail"));
+                          } else {
+                            return Mono.just(saved);
+                          }
+                        })));
   }
 }

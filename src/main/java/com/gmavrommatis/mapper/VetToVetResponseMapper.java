@@ -26,15 +26,6 @@ public interface VetToVetResponseMapper {
   VetResponse toVetResponse(Vet vet);
 
   /**
-   * Converts a single {@link Vet} entity into a {@link VetResponse} DTO.
-   *
-   * @param vet the {@code Vet} entity to map; may be {@code null}
-   * @return the corresponding {@code VetResponse} DTO, or {@code null} if the input was {@code
-   *     null}
-   */
-  com.gmavrommatis.model.VetResponse toVetResponseOpenApi(Vet vet);
-
-  /**
    * Converts a list of {@link Vet} entities into a list of {@link VetResponse} DTOs.
    *
    * @param vets the list of {@code Vet} entities to map; may be {@code null}

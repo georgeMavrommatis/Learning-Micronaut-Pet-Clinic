@@ -1,0 +1,41 @@
+<!doctype html>
+<html>
+<body>
+<h1>Safe Transfer demo</h1>
+<button id="transfer">Transfer money</button>
+<pre id="out"></pre>
+
+<script>
+    const API = 'http://127.0.0.1:8080/api/transfer'; // target
+    const payload = { amount: 1000, to: 'anotherUser' };
+
+    function log(msg) {
+      document.getElementById('out').textContent += msg + '\n';
+    }
+
+    document.getElementById('transfer').addEventListener('click', async () => {
+      try {
+        const res = await fetch(API, {
+          method: 'POST',
+          credentials: 'include',                 // try to send user cookies
+          headers: { 'Content-Type': 'application/json' }, // non-simple => preflight
+          body: JSON.stringify(payload)
+        });
+
+        // If your API returns 200/201/204 on success:
+        if (res.ok) {
+          log(`status: ${res.status}`);
+          log('Transferred money safely cause under same site');            // <-- requested message
+        } else {
+          const text = await res.text().catch(() => '');
+          log(`blocked/failed: ${res.status} ${res.statusText}`);
+          if (text) log(text);
+        }
+      } catch (e) {
+        log('Request was blocked by the browser (likely CORS preflight failed).');
+        log(String(e));
+      }
+    });
+</script>
+</body>
+</html>

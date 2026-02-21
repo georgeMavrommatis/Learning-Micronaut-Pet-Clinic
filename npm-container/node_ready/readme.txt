@@ -4,10 +4,8 @@
 #2 docker-compose up -d
 
 #3
-    #for testing backpressure
-        #A navigate to your browser at http://127.0.0.1:8000/websocket_stream_back_pressure.html
-        #B hit load more with the number of your choice
+    #for testing safe-csrf-json.html
+        #navigate to your browser at http://127.0.0.1:8000/safe-csrf-json.html
 
-    #for testing streaming json
-        #A navigate to your browser at http://127.0.0.1:8000/json_stream_back_pressure.html
-
+    #for testing login.html
+        #navigate to your browser at http://127.0.0.1:8000/login.html

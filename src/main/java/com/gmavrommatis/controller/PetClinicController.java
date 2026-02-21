@@ -7,6 +7,7 @@ import io.micronaut.http.HttpResponse;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
 import io.micronaut.http.annotation.QueryValue;
+import jakarta.annotation.security.RolesAllowed;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
@@ -18,6 +19,7 @@ import reactor.core.publisher.Mono;
  */
 @Slf4j
 @Controller("/pet-clinic")
+@RolesAllowed({"ADMIN"})
 public class PetClinicController {
 
   private final VetService vetService;
@@ -41,9 +43,7 @@ public class PetClinicController {
   @Get("/details")
   public Mono<HttpResponse<PetClinicResponse>> petClinicDetails(
       @QueryValue(defaultValue = "0") int page, @QueryValue(defaultValue = "10") int size) {
-    String threadName = Thread.currentThread().getName();
-    String pool = threadName.contains("nioEventLoopGroup") ? "EVENT-LOOP" : "WORKER";
-    log.info("→ executed on {}", pool);
+    log.info("PetClinicController petClinicDetails");
     return vetService
         .getVetsWithSpecialties(Pageable.from(page, size))
         .map(
