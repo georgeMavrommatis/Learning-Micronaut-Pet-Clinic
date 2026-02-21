@@ -1,10 +1,10 @@
 {
 	"info": {
-		"_postman_id": "b6f742b4-1c99-47e4-9c5b-38fb88b26c01",
+		"_postman_id": "f90ce023-753c-4d0e-9920-f7081b862fd9",
 		"name": "Micronaut learning",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "11550685",
-		"_collection_link": "https://grey-comet-448886.postman.co/workspace/Generali~8cb4727b-c50c-4620-be93-298ac276c8f5/collection/11550685-b6f742b4-1c99-47e4-9c5b-38fb88b26c01?action=share&source=collection_link&creator=11550685"
+		"_collection_link": "https://grey-comet-448886.postman.co/workspace/Generali~8cb4727b-c50c-4620-be93-298ac276c8f5/collection/11550685-f90ce023-753c-4d0e-9920-f7081b862fd9?action=share&source=collection_link&creator=11550685"
 	},
 	"item": [
 		{
@@ -315,6 +315,46 @@
 									"path": [
 										"specialty",
 										"Toxicoogist"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "2-lesson Thread-Selection",
+			"item": [
+				{
+					"name": "PetClinic",
+					"item": [
+						{
+							"name": "get pet-clinic details",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "X-Tenant-ID",
+										"value": "tenantB",
+										"type": "text",
+										"disabled": true
+									}
+								],
+								"url": {
+									"raw": "http://localhost:8080/pet-clinic/details",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"pet-clinic",
+										"details"
 									]
 								}
 							},

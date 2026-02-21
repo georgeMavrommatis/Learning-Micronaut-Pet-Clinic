@@ -76,7 +76,7 @@
       <scope>compile</scope>
     </dependency>
 
-    <!-- Micronaut Data Transaction Hibernate dependency: -->
+    <!-- Micronaut Data transactions -->
     <dependency>
       <groupId>io.micronaut.data</groupId>
       <artifactId>micronaut-data-tx-hibernate</artifactId>
