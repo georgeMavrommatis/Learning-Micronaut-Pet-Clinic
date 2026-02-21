@@ -128,15 +128,11 @@ public class VetService {
             .build();
 
     // 2. Load each Specialty by ID and add it to the Vet
-    Set<Specialty> specs = new HashSet<>();
-    for (String specialtyName : request.getSpecialties()) {
-      Specialty s =
-          specialtyRepository
-              .findByName(specialtyName)
-              .orElseThrow(
-                  () -> new NoSuchElementException("Specialty not found: " + specialtyName));
-      specs.add(s);
+    Set<Specialty> specs = specialtyRepository.findByNameIn(request.getSpecialties());
+    if (!request.getSpecialties().containsAll(specs)) {
+      throw new NoSuchElementException("Specialties not found");
     }
+
     vetRelated.setSpecialties(specialtyMapper.toRelatedSet(specs));
 
     // 3. Save the Vet. Hibernate will insert into vets,

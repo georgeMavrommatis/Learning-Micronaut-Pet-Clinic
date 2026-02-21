@@ -73,6 +73,9 @@ public class SpecialtyRelated {
    * @see io.micronaut.data.annotation.Relation
    * @see VetRelated
    */
-  @Relation(value = Relation.Kind.MANY_TO_MANY, mappedBy = "specialties")
+  @Relation(
+      value = Relation.Kind.MANY_TO_MANY,
+      mappedBy = "specialties",
+      cascade = {Relation.Cascade.PERSIST, Relation.Cascade.UPDATE})
   private Set<VetRelated> vets = new HashSet<>();
 }

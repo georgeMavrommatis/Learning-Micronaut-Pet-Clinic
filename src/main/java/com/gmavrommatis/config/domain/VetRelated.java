@@ -97,7 +97,11 @@ public class VetRelated {
    */
   @Relation(
       value = Relation.Kind.MANY_TO_MANY,
-      cascade = {Relation.Cascade.PERSIST, Relation.Cascade.UPDATE} // or Cascade.ALL
+      cascade = {
+        Relation.Cascade.UPDATE
+      } // in our case we want only UPDATE as we always expect Specialties to exist and Join table
+      // rows are always inserted to link the vet with the specialties.
+      // with persist, we would recreate the existing specialties.
       )
   @JoinTable(
       name = "vet_specialties",

@@ -14,3 +14,8 @@ datasources:
     password: petclinic
     driverClassName: org.postgresql.Driver
     dialect: POSTGRES
+
+logger:
+  levels:
+    io.micronaut.data.query: DEBUG          # shows generated SQL
+    io.micronaut.data.query.bind: TRACE     # shows bind parameters
