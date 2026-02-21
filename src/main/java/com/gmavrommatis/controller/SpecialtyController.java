@@ -24,9 +24,15 @@ public class SpecialtyController {
   }
 
   /**
-   * Retrieves all specialties.
+   * Retrieves all specialties and returns them as a list of {@link SpecialtyResponse} DTOs.
    *
-   * @return a list of {@link SpecialtyResponse}
+   * <p>Note: this method currently returns {@link HttpResponse#created(Object)} (HTTP 201) with the
+   * list in the response body. If you prefer conventional semantics, consider returning {@link
+   * HttpResponse#ok(Object)} (HTTP 200) instead.
+   *
+   * @return an {@link HttpResponse} containing a {@link List} of {@link SpecialtyResponse} DTOs.
+   *     The response body is never {@code null}; an empty list is returned when no specialties
+   *     exist.
    */
   @Get
   public HttpResponse<List<SpecialtyResponse>> findAll() {
@@ -39,10 +45,14 @@ public class SpecialtyController {
   }
 
   /**
-   * Creates a new specialty with the given name.
+   * Creates a new specialty from the provided {@link SpecialtyRequest}.
    *
-   * @param request the {@link SpecialtyRequest} containing the name of the new specialty
-   * @return the created {@link SpecialtyResponse}
+   * <p>On success, returns {@link HttpResponse#created(Object)} with the created specialty DTO.
+   * Validation (non-empty name, uniqueness, etc.) should be enforced by {@code SpecialtyService} or
+   * with validation annotations on {@link SpecialtyRequest}.
+   *
+   * @param request the request body containing the specialty name; expected to be non-null
+   * @return an {@link HttpResponse} containing the created {@link SpecialtyResponse} DTO
    */
   @Post
   public HttpResponse<SpecialtyResponse> create(@Body SpecialtyRequest request) {
@@ -53,10 +63,14 @@ public class SpecialtyController {
   /**
    * Renames an existing specialty.
    *
-   * @param name the current name of the specialty to rename
-   * @param request the {@link SpecialtyRequest} containing the new name
-   * @return the updated {@link SpecialtyResponse}, or 400 BAD_REQUEST if no specialty with the
-   *     given name exists
+   * <p>The {@code name} path variable identifies the specialty to rename; the new name is taken
+   * from the {@link SpecialtyRequest} body. If the specialty does not exist, the controller returns
+   * {@link HttpResponse#badRequest(Object)} with an explanatory message.
+   *
+   * @param name the current name of the specialty to rename (path variable)
+   * @param request the request body containing the new name for the specialty
+   * @return {@link HttpResponse#ok(Object)} with the updated {@link SpecialtyResponse} on success,
+   *     or {@link HttpResponse#badRequest(Object)} if the specialty was not found
    */
   @Put("/{name}")
   public HttpResponse<?> rename(@PathVariable String name, @Body SpecialtyRequest request) {
@@ -66,28 +80,6 @@ public class SpecialtyController {
       return HttpResponse.ok(SpecialtyResponse.builder().name(updated.getName()).build());
     } catch (NoSuchElementException e) {
       return HttpResponse.badRequest("Specialty not found: " + name);
-    }
-  }
-
-  /**
-   * Deletes the specialty with the specified name.
-   *
-   * @param name the unique name of the specialty to delete
-   * @return an {@code HttpResponse} with:
-   *     <ul>
-   *       <li>200 ok, if the deletion was successful
-   *       <li>400 Bad Request, if no specialty with the given name exists
-   *     </ul>
-   */
-  @Delete("/{name}")
-  public HttpResponse<String> deleteByName(@PathVariable String name) {
-    try {
-      specialtyService.deleteByName(name);
-      return HttpResponse.ok();
-    } catch (NoSuchElementException e) {
-      return HttpResponse.badRequest("Specialty not found: " + name);
-    } catch (Exception e) {
-      throw new RuntimeException(e);
     }
   }
 }

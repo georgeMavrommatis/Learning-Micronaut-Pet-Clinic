@@ -1,0 +1,16 @@
+micronaut:
+  #The application name - Reference: https://docs.micronaut.io/latest/guide/configurationreference.html#io.micronaut.runtime.ApplicationConfiguration
+  application:
+    name: pet-clinic
+  #Reference: https://docs.micronaut.io/latest/guide/configurationreference.html#io.micronaut.http.server.HttpServerConfiguration
+  server:
+    thread-selection: AUTO
+
+
+datasources:
+  default:
+    url: jdbc:postgresql://localhost:5432/pet_clinic
+    username: pet_clinic
+    password: petclinic
+    driverClassName: org.postgresql.Driver
+    dialect: POSTGRES

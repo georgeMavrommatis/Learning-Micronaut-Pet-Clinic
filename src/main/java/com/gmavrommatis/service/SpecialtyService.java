@@ -34,7 +34,29 @@ public class SpecialtyService {
   }
 
   /**
-   * Creates a new specialty with the specified name.
+   * Finds a specialty by its ID.
+   *
+   * @param id the ID of the specialty
+   * @return the {@link Specialty} entity, or {@code null} if not found
+   */
+  @Transactional(readOnly = true)
+  public Specialty findById(Long id) {
+    return specialtyRepository.findById(id).orElse(null);
+  }
+
+  /**
+   * Finds a specialty by its name.
+   *
+   * @param name the name of the specialty
+   * @return the {@link Specialty} entity, or {@code null} if not found
+   */
+  @Transactional(readOnly = true)
+  public Specialty findByName(String name) {
+    return specialtyRepository.findByName(name).orElse(null);
+  }
+
+  /**
+   * Creates a new specialty with the given name.
    *
    * @param name the name of the new specialty
    * @return the created {@link Specialty} entity
@@ -47,11 +69,12 @@ public class SpecialtyService {
   }
 
   /**
-   * Updates the name of an existing specialty.
+   * Updates an existing specialty's name.
    *
-   * @param existingName the current name of the specialty to update
-   * @param newName the new name to assign to the specialty
+   * @param existingName the current name of the specialty
+   * @param newName the new name to assign
    * @return the updated {@link Specialty} entity
+   * @throws NoSuchElementException if no specialty exists with {@code existingName}
    */
   @Transactional
   public Specialty update(String existingName, String newName) {
@@ -62,15 +85,5 @@ public class SpecialtyService {
 
     s.setName(newName);
     return specialtyRepository.update(s);
-  }
-
-  /**
-   * Deletes the specialty with the specified name.
-   *
-   * @param name the unique name of the specialty to delete
-   */
-  @Transactional
-  public Long deleteByName(String name) {
-    return specialtyRepository.deleteByName(name);
   }
 }

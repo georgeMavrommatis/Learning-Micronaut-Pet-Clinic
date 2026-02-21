@@ -7,10 +7,9 @@ import com.gmavrommatis.model.request.UpdateVetRequest;
 import com.gmavrommatis.model.response.VetResponse;
 import com.gmavrommatis.service.VetService;
 import io.micronaut.http.HttpResponse;
+import io.micronaut.http.MutableHttpResponse;
 import io.micronaut.http.annotation.*;
-import io.micronaut.transaction.annotation.Transactional;
 import java.util.List;
-import java.util.NoSuchElementException;
 
 /**
  * REST controller for managing veterinarian records.
@@ -29,100 +28,102 @@ public class VetController {
   }
 
   /**
-   * Retrieves all veterinarians.
+   * Retrieves all {@link Vet} records from the system and returns them as JSON-safe {@link
+   * VetResponse} objects.
    *
-   * @return a list of {@link VetResponse}
+   * <p>This endpoint fetches all stored veterinarians via the service layer, maps each entity to an
+   * immutable DTO representation using {@link VetToVetResponseMapper}, and returns the resulting
+   * list wrapped in an HTTP 200 response. No pagination or filtering is applied.
+   *
+   * @return an {@link HttpResponse} containing a list of {@link VetResponse} elements, never {@code
+   *     null}. The list may be empty if no vets are registered.
    */
   @Get
   public HttpResponse<List<VetResponse>> vetDetails() {
-    return HttpResponse.ok(vetToVetResponseMapper.toVetResponseLazyList(vetService.findAll()));
+    List<Vet> vets = vetService.findAll();
+
+    List<VetResponse> responses = vets.stream().map(vetToVetResponseMapper::toVetResponse).toList();
+
+    return HttpResponse.ok(responses);
   }
 
   /**
-   * Retrieves veterinarians whose last names start with the given prefix and who have at least one
-   * of the specified specialties.
+   * Creates a new veterinarian record along with specialties.
    *
-   * @param lastNamePrefix the prefix to match against each vet’s last name (case-sensitive)
-   * @param specialtyNames a list of specialty names (parsed from a comma-separated path variable);
-   *     only vets possessing at least one of these specialties are returned
-   * @return an {@code HttpResponse} containing a list of fully populated {@link VetResponse} DTOs
-   *     for vets matching the criteria
-   */
-  @Get("/{lastNamePrefix}/{specialtyNames}")
-  public HttpResponse<List<VetResponse>> findByLastNameAndSpecialties(
-      @PathVariable String lastNamePrefix,
-      @PathVariable List<String> specialtyNames // Micronaut will split “1,2,5” → [1,2,5]
-      ) {
-    /*With Criteria*/
-    List<Vet> vets =
-        vetService.findByLastNameAndSpecialties(
-            lastNamePrefix, specialtyNames // “false” = match *any* specialty
-            );
-
-    /*With Query*/
-    /* List<Vet> vets = vetService.findByLastNameAndSpecialtiesByQuery(
-            lastNamePrefix, specialtyNames  // “false” = match *any* specialty
-    );*/
-    return HttpResponse.ok(vetToVetResponseMapper.toVetResponseEagerList(vets));
-  }
-
-  /**
-   * Creates a new veterinarian record.
-   *
-   * @param request the {@link CreateVetRequest} containing vet details
-   * @return an {@code HttpResponse} with status 201 Created and the created {@link VetResponse}
+   * @param request the {@link CreateVetRequest} containing the vet’s details and specialty names
+   * @return 200 OK with the created vet DTO
    */
   @Post
   public HttpResponse<VetResponse> create(@Body CreateVetRequest request) {
-    Vet created = vetService.createVet(request);
-    return HttpResponse.created(vetToVetResponseMapper.toVetResponseEager(created));
+    VetResponse response = vetService.createVetWithSpecialties(request);
+    return HttpResponse.ok(response);
+  }
+
+  @Post("/related")
+  public HttpResponse<VetResponse> createRelated(@Body CreateVetRequest request) {
+    VetResponse response = vetService.createVet(request);
+    return HttpResponse.ok(response);
   }
 
   /**
    * Deletes a veterinarian by first and last name.
    *
-   * <p>On success, returns a 200 OK response containing the number of deleted records. If no
-   * matching veterinarian is found, returns a 400 Bad Request response with an error message.
-   *
-   * @param firstName the veterinarian's first name
-   * @param lastName the veterinarian's last name
-   * @return an {@code HttpResponse<String>} with:
-   *     <ul>
-   *       <li>200 OK and the count of deleted veterinarians as the response body
-   *       <li>400 Bad Request and an error message if no matching veterinarian is found
-   *     </ul>
+   * @param firstName the vet’s first name
+   * @param lastName the vet’s last name
+   * @return 204 No Content if deletion succeeds, 404 if no vet found
    */
   @Delete("/{firstName}/{lastName}")
-  public HttpResponse<String> deleteByName(
+  public MutableHttpResponse<Object> deleteByName(
       @PathVariable String firstName, @PathVariable String lastName) {
-    try {
-      return HttpResponse.ok(String.valueOf(vetService.deleteByName(firstName, lastName)));
-    } catch (NoSuchElementException e) {
-      return HttpResponse.badRequest("Vet not found: " + firstName + " " + lastName);
-    }
+    vetService.deleteByNameWithCascade(firstName, lastName);
+    return HttpResponse.noContent(); // 204 on success
   }
 
   /**
-   * Updates an existing veterinarian's details.
+   * Updates an existing veterinarian’s details.
    *
+   * @param page zero-based page index (not used in this method)
+   * @param size page size (not used in this method)
    * @param firstName the current first name of the vet to update
    * @param lastName the current last name of the vet to update
-   * @param request the {@link UpdateVetRequest} containing updated fields
-   * @return an {@code HttpResponse} containing the updated {@link VetResponse}, or 400 badRequest
-   *     if no matching vet exists
+   * @param request the {@link UpdateVetRequest} containing fields to update
+   * @return 200 OK with the updated vet DTO, or 404 if vet not found
    */
   @Put("/{firstName}/{lastName}")
-  @Transactional
-  public HttpResponse<?> update(
+  public HttpResponse<VetResponse> update(
+      @QueryValue(defaultValue = "0") int page,
+      @QueryValue(defaultValue = "10") int size,
       @PathVariable String firstName,
       @PathVariable String lastName,
       @Body UpdateVetRequest request) {
 
     try {
-      Vet updated = vetService.updateVetByName(firstName, lastName, request);
-      return HttpResponse.ok(vetToVetResponseMapper.toVetResponseEager(updated));
-    } catch (NoSuchElementException e) {
-      return HttpResponse.badRequest(e.getMessage());
+      VetResponse response = vetService.updateVetByName(firstName, lastName, request);
+      return HttpResponse.ok(response);
+    } catch (RuntimeException e) {
+      return HttpResponse.notFound();
     }
+  }
+
+  /**
+   * Searches for veterinarians whose last name equals the given lastName and who have at least one
+   * of the specified specialties.
+   *
+   * @param lastName the lastName to match
+   * @param specialtyNames the list of specialty names; only vets with at least one matching
+   *     specialty are returned
+   * @return 200 OK with matching vets, or 404 if none found
+   */
+  @Get("/{lastName}/{specialtyNames}")
+  public HttpResponse<List<VetResponse>> findByLastNameAndSpecialties(
+      @PathVariable String lastName, @PathVariable List<String> specialtyNames) {
+
+    List<VetResponse> response = vetService.findByLastName(lastName, specialtyNames);
+
+    if (response == null || response.isEmpty()) {
+      return HttpResponse.notFound();
+    }
+
+    return HttpResponse.ok(response);
   }
 }

@@ -2,103 +2,65 @@ package com.gmavrommatis.config.repository;
 
 import com.gmavrommatis.config.domain.Vet;
 import io.micronaut.data.annotation.Query;
-import io.micronaut.data.annotation.Repository;
-import io.micronaut.data.jpa.annotation.EntityGraph;
-import io.micronaut.data.jpa.repository.JpaRepository;
+import io.micronaut.data.jdbc.annotation.JdbcRepository;
 import io.micronaut.data.model.Page;
 import io.micronaut.data.model.Pageable;
+import io.micronaut.data.model.query.builder.sql.Dialect;
+import io.micronaut.data.repository.PageableRepository;
 import java.util.List;
-import java.util.Optional;
 
 /**
- * Repository interface for {@link Vet} entities.
+ * Repository interface for {@link Vet} entities. Provides CRUD operations, pagination support, and
+ * custom queries.
+ *
+ * <p>Note: For paginated queries returning {@link Page}, Micronaut requires both a content query
+ * and a count query.
  *
  * @author GewrgiosMmavrommatis
  */
-@Repository
-public interface VetRepository extends JpaRepository<Vet, Long> {
+@JdbcRepository(dialect = Dialect.POSTGRES)
+public interface VetRepository extends PageableRepository<Vet, Long> {
 
   /**
-   * Retrieves a paginated list of all {@link Vet} entities with their associated {@link Specialty
-   * specialties} eagerly fetched.
+   * Fetches a page of vets with content and total count queries.
    *
-   * <p>This method overrides the default {@code findAll(Pageable)} implementation to eliminate the
-   * typical N+1 select problem associated with lazily loaded collections. By applying a JPA {@link
-   * EntityGraph} with {@code attributePaths = "specialties"}, Hibernate performs a single
-   * fetch-join–like query to retrieve each {@code Vet} together with its specialties in one
-   * round-trip to the database.
-   *
-   * <p>The result page still includes the default count query used for pagination, but the content
-   * query will fetch the {@code specialties} association eagerly.
-   *
-   * @param pageable the pagination information, including page index and page size
-   * @return a {@link Page} containing veterinarians and their eagerly loaded specialties
+   * @param pageable the {@link Pageable} describing page number and size
+   * @return a {@link Page} containing the requested slice of vets
    */
-  @Override
-  @EntityGraph(attributePaths = "specialties")
-  Page<Vet> findAll(Pageable pageable);
+  @Query(value = "SELECT * FROM petclinic.vets", countQuery = "SELECT COUNT(*) FROM petclinic.vets")
+  Page<Vet> findAllPaged(Pageable pageable);
 
   /**
-   * Explicit lazy variant that returns Vet entities without fetching specialties. The specialties
-   * collection remains LAZY and won't be loaded until accessed.
+   * Returns the total number of vets.
    *
-   * <p>NOTE: we use @Query to stop Spring Data from trying to parse the method name. Also provide
-   * countQuery for pagination correctness.
+   * @return the total count of vet records
    */
-  @Query(value = "select v from Vet v", countQuery = "select count(v) from Vet v")
-  Page<Vet> findAllLazy(Pageable pageable);
+  @Query("SELECT COUNT(*) FROM petclinic.vets")
+  Long countAll();
 
   /**
-   * Deletes all veterinarians matching the given first and last name.
+   * Finds all vets with the given last name.
    *
-   * <p>Useful for removing a vet when their full name is known.
+   * @param lastName the last name to match
+   * @return a list of matching {@link Vet} entities
+   */
+  List<Vet> findByLastName(String lastName);
+
+  /**
+   * Finds all vets matching both first and last name.
+   *
+   * @param firstName the first name to match
+   * @param lastName the last name to match
+   * @return a list of matching {@link Vet} entities
+   */
+  List<Vet> findByFirstNameAndLastName(String firstName, String lastName);
+
+  /**
+   * Deletes vets matching the given first and last name.
    *
    * @param firstName the first name of the vet(s) to delete
    * @param lastName the last name of the vet(s) to delete
-   * @return the number of rows (veterinarians) deleted
+   * @return the number of rows deleted
    */
-  long deleteByFirstNameAndLastName(String firstName, String lastName);
-
-  /**
-   * Finds a veterinarian by their first and last name.
-   *
-   * @param firstName the first name of the vet
-   * @param lastName the last name of the vet
-   * @return the matching {@code Vet}
-   */
-  Optional<Vet> findByFirstNameAndLastName(String firstName, String lastName);
-
-  /**
-   * Finds all veterinarians whose last name matches the given value and who have at least one of
-   * the specified specialties.
-   *
-   * <p>Executes a JPQL query that:
-   *
-   * <ul>
-   *   <li>Fetches each vet’s specialties in a single query to avoid N+1 select issues.
-   *   <li>Filters vets by matching last name and at least one specialty name from the provided
-   *       list.
-   *   <li>Returns distinct results ordered by last name.
-   * </ul>
-   *
-   * @param lastName the last name to match (exact match)
-   * @param specialtyNames a list of specialty names; only vets with at least one matching specialty
-   *     are returned
-   * @return a list of {@link Vet} entities, each with their specialties initialized
-   */
-  @Query(
-      """
-    SELECT DISTINCT v
-    FROM Vet v
-    LEFT JOIN FETCH v.specialties s
-    WHERE v IN (
-        SELECT v2
-        FROM Vet v2
-        JOIN v2.specialties s2
-        WHERE v2.lastName = :lastName
-          AND s2.name IN :specialtyNames
-    )
-    ORDER BY v.lastName
-""")
-  List<Vet> findByLastNameAndSpecialties(String lastName, List<String> specialtyNames);
+  Long deleteByFirstNameAndLastName(String firstName, String lastName);
 }
