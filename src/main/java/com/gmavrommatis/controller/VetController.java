@@ -39,6 +39,34 @@ public class VetController {
   }
 
   /**
+   * Retrieves veterinarians whose last names start with the given prefix and who have at least one
+   * of the specified specialties.
+   *
+   * @param lastNamePrefix the prefix to match against each vet’s last name (case-sensitive)
+   * @param specialtyNames a list of specialty names (parsed from a comma-separated path variable);
+   *     only vets possessing at least one of these specialties are returned
+   * @return an {@code HttpResponse} containing a list of fully populated {@link VetResponse} DTOs
+   *     for vets matching the criteria
+   */
+  @Get("/{lastNamePrefix}/{specialtyNames}")
+  public HttpResponse<List<VetResponse>> findByLastNameAndSpecialties(
+      @PathVariable String lastNamePrefix,
+      @PathVariable List<String> specialtyNames // Micronaut will split “1,2,5” → [1,2,5]
+      ) {
+    /*With Criteria*/
+    List<Vet> vets =
+        vetService.findByLastNameAndSpecialties(
+            lastNamePrefix, specialtyNames // “false” = match *any* specialty
+            );
+
+    /*With Query*/
+    /* List<Vet> vets = vetService.findByLastNameAndSpecialtiesByQuery(
+            lastNamePrefix, specialtyNames  // “false” = match *any* specialty
+    );*/
+    return HttpResponse.ok(vetToVetResponseMapper.toVetResponseEagerList(vets));
+  }
+
+  /**
    * Creates a new veterinarian record.
    *
    * @param request the {@link CreateVetRequest} containing vet details

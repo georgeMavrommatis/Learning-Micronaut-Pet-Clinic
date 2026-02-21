@@ -8,6 +8,9 @@ import com.gmavrommatis.model.request.CreateVetRequest;
 import com.gmavrommatis.model.request.UpdateVetRequest;
 import io.micronaut.transaction.annotation.Transactional;
 import jakarta.inject.Singleton;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.criteria.*;
 import java.util.*;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +26,8 @@ public class VetService {
 
   private final VetRepository vetRepository;
   private final SpecialtyRepository specialtyRepository;
+
+  @PersistenceContext private EntityManager em;
 
   public VetService(VetRepository vetRepository, SpecialtyRepository specialtyRepository) {
     this.vetRepository = vetRepository;
@@ -139,5 +144,74 @@ public class VetService {
     }
 
     return vetRepository.update(vet);
+  }
+
+  /**
+   * Finds veterinarians by exact last name and a list of specialty names using the JPA Criteria
+   * API.
+   *
+   * <p>This method:
+   *
+   * <ul>
+   *   <li>Creates a {@link CriteriaQuery} to fetch {@code Vet} entities, performing a LEFT JOIN
+   *       FETCH on the {@code specialties} association to initialize the collection in one query.
+   *   <li>Uses a subquery to filter only those vets whose {@code lastName} equals the given value
+   *       and who have at least one specialty name contained in the provided list.
+   *   <li>Returns distinct results ordered by last name.
+   * </ul>
+   *
+   * @param lastName the exact last name to match
+   * @param specialtyNames a list of specialty names; only vets possessing at least one of these
+   *     specialties are returned
+   * @return a {@link List} of {@code Vet} entities with their specialties initialized
+   */
+  @Transactional
+  public List<Vet> findByLastNameAndSpecialties(String lastName, List<String> specialtyNames) {
+
+    CriteriaBuilder cb = em.getCriteriaBuilder();
+    CriteriaQuery<Vet> cq = cb.createQuery(Vet.class);
+    Root<Vet> vet = cq.from(Vet.class);
+
+    // Join Fetch to load all specialties
+    vet.fetch("specialties", JoinType.LEFT);
+
+    // Subquery to filter by specialties
+    Subquery<Long> subquery = cq.subquery(Long.class);
+    Root<Vet> subVet = subquery.from(Vet.class);
+    Join<Vet, Specialty> subSpec = subVet.join("specialties");
+
+    subquery
+        .select(subVet.get("id"))
+        .where(
+            cb.and(
+                cb.equal(subVet.get("lastName"), lastName),
+                subSpec.get("name").in(specialtyNames)));
+
+    // Main query filters only by vet IDs from subquery
+    cq.select(vet)
+        .distinct(true)
+        .where(vet.get("id").in(subquery))
+        .orderBy(cb.asc(vet.get("lastName")));
+
+    return em.createQuery(cq).getResultList();
+  }
+
+  /**
+   * Finds veterinarians by exact last name and specialty names using a predefined JPQL query.
+   *
+   * <p>Delegates to the {@link VetRepository#findByLastNameAndSpecialties(String, List)} method
+   * annotated with {@code @Query}, which performs a JOIN FETCH on specialties and filters by last
+   * name and specialty membership, returning distinct results ordered by last name.
+   *
+   * @param lastNamePrefix the exact last name to match (note: passed as-is to repository query)
+   * @param specialtyNames a list of specialty names; only vets possessing at least one of these
+   *     specialties are returned
+   * @return a {@link List} of {@code Vet} entities with their specialties initialized
+   */
+  @Transactional
+  public List<Vet> findByLastNameAndSpecialtiesByQuery(
+      String lastNamePrefix, List<String> specialtyNames) {
+
+    return vetRepository.findByLastNameAndSpecialties(lastNamePrefix, specialtyNames);
   }
 }

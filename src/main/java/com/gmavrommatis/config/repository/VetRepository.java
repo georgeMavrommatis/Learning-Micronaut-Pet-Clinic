@@ -1,8 +1,10 @@
 package com.gmavrommatis.config.repository;
 
 import com.gmavrommatis.config.domain.Vet;
+import io.micronaut.data.annotation.Query;
 import io.micronaut.data.annotation.Repository;
 import io.micronaut.data.jpa.repository.JpaRepository;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -32,4 +34,38 @@ public interface VetRepository extends JpaRepository<Vet, Long> {
    * @return the matching {@code Vet}
    */
   Optional<Vet> findByFirstNameAndLastName(String firstName, String lastName);
+
+  /**
+   * Finds all veterinarians whose last name matches the given value and who have at least one of
+   * the specified specialties.
+   *
+   * <p>Executes a JPQL query that:
+   *
+   * <ul>
+   *   <li>Fetches each vet’s specialties in a single query to avoid N+1 select issues.
+   *   <li>Filters vets by matching last name and at least one specialty name from the provided
+   *       list.
+   *   <li>Returns distinct results ordered by last name.
+   * </ul>
+   *
+   * @param lastName the last name to match (exact match)
+   * @param specialtyNames a list of specialty names; only vets with at least one matching specialty
+   *     are returned
+   * @return a list of {@link Vet} entities, each with their specialties initialized
+   */
+  @Query(
+      """
+    SELECT DISTINCT v
+    FROM Vet v
+    LEFT JOIN FETCH v.specialties s
+    WHERE v IN (
+        SELECT v2
+        FROM Vet v2
+        JOIN v2.specialties s2
+        WHERE v2.lastName = :lastName
+          AND s2.name IN :specialtyNames
+    )
+    ORDER BY v.lastName
+""")
+  List<Vet> findByLastNameAndSpecialties(String lastName, List<String> specialtyNames);
 }

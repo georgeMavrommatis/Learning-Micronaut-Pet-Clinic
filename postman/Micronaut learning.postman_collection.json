@@ -1,10 +1,10 @@
 {
 	"info": {
-		"_postman_id": "f90ce023-753c-4d0e-9920-f7081b862fd9",
+		"_postman_id": "3a4c6407-6bcb-48bd-89ed-1a9536db34c3",
 		"name": "Micronaut learning",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "11550685",
-		"_collection_link": "https://grey-comet-448886.postman.co/workspace/Generali~8cb4727b-c50c-4620-be93-298ac276c8f5/collection/11550685-f90ce023-753c-4d0e-9920-f7081b862fd9?action=share&source=collection_link&creator=11550685"
+		"_collection_link": "https://grey-comet-448886.postman.co/workspace/Generali~8cb4727b-c50c-4620-be93-298ac276c8f5/collection/11550685-3a4c6407-6bcb-48bd-89ed-1a9536db34c3?action=share&source=collection_link&creator=11550685"
 	},
 	"item": [
 		{
@@ -355,6 +355,347 @@
 									"path": [
 										"pet-clinic",
 										"details"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "3-jpa-criteria-api-explicit-queries",
+			"item": [
+				{
+					"name": "PetClinic",
+					"item": [
+						{
+							"name": "get pet-clinic details",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "X-Tenant-ID",
+										"value": "tenantB",
+										"type": "text",
+										"disabled": true
+									}
+								],
+								"url": {
+									"raw": "http://localhost:8080/pet-clinic/details",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"pet-clinic",
+										"details"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Vet",
+					"item": [
+						{
+							"name": "get vets",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/vet",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"vet"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "findByLastNameAndSpecialties",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/vet/Davis/Cardiology,toxicology",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"vet",
+										"Davis",
+										"Cardiology,toxicology"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "save Vet",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"firstName\": \"hyy\",\r\n  \"lastName\": \"hi\",\r\n  \"specialties\": [\r\n    \"Radiology\",\r\n    \"Surgery\"\r\n  ]\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8080/vet",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"vet"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "save Vet - Fail Rollback transaction",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"firstName\": \"fail\",\r\n  \"lastName\": \"hi\",\r\n  \"specialties\": [\r\n    \"Radiology\",\r\n    \"Surgery\"\r\n  ]\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8080/vet",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"vet"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "update Vet",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"firstName\": \"Mike\",\r\n  \"lastName\": \"Peterson\",\r\n  \"specialties\": [\r\n    \"Radiology\"\r\n  ]\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8080/vet/Alice/Anderson",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"vet",
+										"Alice",
+										"Anderson"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "delete Vet",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"firstName\": \"Alice\",\r\n  \"lastName\": \"Anderson\",\r\n  \"specialties\": [\r\n    \"Radiology\",\r\n    \"Surgery\"\r\n  ]\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8080/vet/Alice/Anderson",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"vet",
+										"Alice",
+										"Anderson"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Specialty",
+					"item": [
+						{
+							"name": "get Specialties",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/specialty",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"specialty"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "save specialty",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"name\": \"Nutritionist\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8080/specialty",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"specialty"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "update specialty",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"name\": \"Toxicoogist\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8080/specialty/Nutritionist",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"specialty",
+										"Nutritionist"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "delete specialty",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"firstName\": \"Alice\",\r\n  \"lastName\": \"Anderson\",\r\n  \"specialties\": [\r\n    \"Radiology\",\r\n    \"Surgery\"\r\n  ]\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8080/specialty/Toxicoogist",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"specialty",
+										"Toxicoogist"
 									]
 								}
 							},

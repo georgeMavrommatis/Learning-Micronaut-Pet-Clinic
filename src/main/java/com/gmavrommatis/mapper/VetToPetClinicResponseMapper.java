@@ -7,6 +7,16 @@ import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import java.util.List;
 
+/**
+ * Mapper that converts a list of {@link Vet} domain objects into a {@link PetClinicResponse}, using
+ * either lazy (basic) or eager (detailed) mapping of individual vets via {@link
+ * VetToVetResponseMapper}.
+ *
+ * <p>This abstract class is implemented at compile time by MapStruct.
+ *
+ * @author GewrgiosMmavrommatis
+ * @version 1.0
+ */
 @Singleton
 public class VetToPetClinicResponseMapper {
 
