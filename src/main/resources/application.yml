@@ -27,7 +27,10 @@ logger:
     org.mongodb.driver.protocol.query: DEBUG
 
 
-
+# Start the WebSocket server
+websocket:
+  server:
+    enabled: true
 
 r2dbc:
   datasources:

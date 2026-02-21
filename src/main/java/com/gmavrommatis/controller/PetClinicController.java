@@ -42,6 +42,12 @@ public class PetClinicController {
   public Mono<HttpResponse<PetClinicResponse>> petClinicDetails(
       @QueryValue(defaultValue = "0") int page, @QueryValue(defaultValue = "10") int size) {
     log.info("PetClinicController petClinicDetails");
-    return vetService.getVetsWithSpecialties(Pageable.from(page, size)).map(HttpResponse::ok);
+    return vetService
+        .getVetsWithSpecialties(Pageable.from(page, size))
+        .map(
+            petClinicResponse ->
+                HttpResponse.ok(petClinicResponse)
+                    .header("page", String.valueOf(page))
+                    .header("size", String.valueOf(size)));
   }
 }

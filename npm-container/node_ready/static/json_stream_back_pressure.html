@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Vet Reviews Stream (with Offset/Limit)</title>
+    <style>
+        body { font-family: sans-serif; padding: 1rem; }
+        label, button { margin-right: 0.5rem; }
+        input[type="number"] { width: 6ch; padding: 0.2rem; }
+        ul { margin-top: 1rem; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+<h1>Streaming Vet Reviews</h1>
+
+<label>
+    Offset:
+    <input id="offsetInput" type="number" value="0" min="0" />
+</label>
+<label>
+    Limit:
+    <input id="limitInput" type="number" value="10" min="1" />
+</label>
+<button id="fetchBtn">Fetch</button>
+
+<ul id="reviews"></ul>
+
+<script>
+    const reviewsList = document.getElementById("reviews");
+    const fetchBtn    = document.getElementById("fetchBtn");
+    const offsetInput = document.getElementById("offsetInput");
+    const limitInput  = document.getElementById("limitInput");
+
+    async function fetchStream(offset, limit) {
+      const url = `http://localhost:8080/vet-review/reviewer-details/json-stream/back-pressure/batch?offset=${offset}&limit=${limit}`;
+      const resp = await fetch(url);
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder();
+      let buf = '';
+
+      // clear any previous results
+      reviewsList.innerHTML = '';
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+
+        let start = 0, depth = 0;
+        for (let i = 0; i < buf.length; i++) {
+          if (buf[i] === '{') depth++;
+          else if (buf[i] === '}') depth--;
+          if (depth === 0 && buf[start] === '{') {
+            const chunk = buf.slice(start, i + 1);
+            start = i + 1;
+            try {
+              const obj = JSON.parse(chunk);
+              const li = document.createElement('li');
+              li.textContent = JSON.stringify(obj);
+              reviewsList.appendChild(li);
+            } catch (e) {
+              console.error('Failed to parse JSON chunk:', chunk, e);
+            }
+          }
+        }
+        buf = buf.slice(start);
+      }
+    }
+
+    fetchBtn.addEventListener('click', () => {
+      const offset = parseInt(offsetInput.value, 10) || 0;
+      const limit  = parseInt(limitInput.value, 10)  || 1;
+
+      // disable the button until the stream finishes (or errors)
+      fetchBtn.disabled = true;
+      fetchStream(offset, limit)
+        .catch(console.error)
+        .finally(() => {
+          // re-enable no matter what
+          fetchBtn.disabled = false;
+        });
+    });
+</script>
+</body>
+</html>

@@ -1,10 +1,10 @@
 {
 	"info": {
-		"_postman_id": "2ccb6b7a-f3cd-48a9-85cf-0adf7beccda5",
+		"_postman_id": "2c8a4b63-3708-413b-b6ea-3781800a5772",
 		"name": "Micronaut learning",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "11550685",
-		"_collection_link": "https://grey-comet-448886.postman.co/workspace/Generali~8cb4727b-c50c-4620-be93-298ac276c8f5/collection/11550685-2ccb6b7a-f3cd-48a9-85cf-0adf7beccda5?action=share&source=collection_link&creator=11550685"
+		"_collection_link": "https://grey-comet-448886.postman.co/workspace/Generali~8cb4727b-c50c-4620-be93-298ac276c8f5/collection/11550685-2c8a4b63-3708-413b-b6ea-3781800a5772?action=share&source=collection_link&creator=11550685"
 	},
 	"item": [
 		{
@@ -2706,7 +2706,7 @@
 								"header": [
 									{
 										"key": "Accept",
-										"value": "text/event-stream",
+										"value": " ",
 										"type": "text"
 									},
 									{
@@ -2765,6 +2765,260 @@
 										{
 											"key": "limit",
 											"value": "10"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "12-reactive-streaming-with-backpressure",
+			"item": [
+				{
+					"name": "PetClinic",
+					"item": [
+						{
+							"name": "get pet-clinic details",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/pet-clinic/details?page=0&size=10",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"pet-clinic",
+										"details"
+									],
+									"query": [
+										{
+											"key": "page",
+											"value": "0"
+										},
+										{
+											"key": "size",
+											"value": "10"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Vet-Review",
+					"item": [
+						{
+							"name": "save N Vet-Review randomly",
+							"item": [
+								{
+									"name": "save N Vet-Review randomly",
+									"event": [
+										{
+											"listen": "prerequest",
+											"script": {
+												"exec": [
+													"// 1) random rating 1–10\r",
+													"pm.variables.set(\"rating\", Math.floor(Math.random() * 10) + 1);\r",
+													"\r",
+													"// 2) random reviewer name\r",
+													"const reviewers = [\r",
+													"  \"Fred Doe\", \"Peter Prince\"\r",
+													"];\r",
+													"pm.variables.set(\r",
+													"  \"reviewer\",\r",
+													"  reviewers[Math.floor(Math.random() * reviewers.length)]\r",
+													");\r",
+													"\r",
+													"// 3) random review content\r",
+													"const contents = [\r",
+													"  \"Excellent doctor, cured my cat!\",\r",
+													"  \"Had to wait too long, but good care.\",\r",
+													"  \"Very friendly staff and great results.\",\r",
+													"  \"Not happy with the follow-up.\",\r",
+													"  \"Would 100% recommend to a friend.\"\r",
+													"];\r",
+													"pm.variables.set(\r",
+													"  \"content\",\r",
+													"  contents[Math.floor(Math.random() * contents.length)]\r",
+													");\r",
+													""
+												],
+												"type": "text/javascript",
+												"packages": {},
+												"requests": {}
+											}
+										},
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													""
+												],
+												"type": "text/javascript",
+												"packages": {},
+												"requests": {}
+											}
+										}
+									],
+									"request": {
+										"auth": {
+											"type": "noauth"
+										},
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\r\n  \"firstName\": \"Nicholas\",\r\n  \"lastName\" : \"Robinson\",\r\n  \"reviewer\" : \"{{reviewer}}\",\r\n  \"content\"  : \"{{content}}\",\r\n  \"rating\"   : {{rating}}\r\n}\r\n",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "http://localhost:8080/vet-review",
+											"protocol": "http",
+											"host": [
+												"localhost"
+											],
+											"port": "8080",
+											"path": [
+												"vet-review"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "get vet-review details",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/vet-review/reviewer-details?page=0&size=100",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"vet-review",
+										"reviewer-details"
+									],
+									"query": [
+										{
+											"key": "page",
+											"value": "0"
+										},
+										{
+											"key": "size",
+											"value": "100"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "get vet-review SSE stream Copy 2",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "text/event-stream",
+										"type": "text"
+									},
+									{
+										"key": "X-Client-Id",
+										"value": "0",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "http://localhost:8080/vet-review/reviewer-details/sse-stream/back-pressure/batch?offset=4&limit=100",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"vet-review",
+										"reviewer-details",
+										"sse-stream",
+										"back-pressure",
+										"batch"
+									],
+									"query": [
+										{
+											"key": "offset",
+											"value": "4"
+										},
+										{
+											"key": "limit",
+											"value": "100"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "get vet-review batch JsonStream",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/x-json-stream",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "http://localhost:8080/vet-review/reviewer-details/json-stream/back-pressure/batch?offset=4&limit=1",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"vet-review",
+										"reviewer-details",
+										"json-stream",
+										"back-pressure",
+										"batch"
+									],
+									"query": [
+										{
+											"key": "offset",
+											"value": "4"
+										},
+										{
+											"key": "limit",
+											"value": "1"
 										}
 									]
 								}

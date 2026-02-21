@@ -1,5 +1,7 @@
 package com.gmavrommatis.controller;
 
+import static java.lang.Math.clamp;
+
 import com.gmavrommatis.mapper.VetReviewToVetReviewResponseMapper;
 import com.gmavrommatis.model.request.CreateVetReviewRequest;
 import com.gmavrommatis.model.response.VetReviewDetails;
@@ -35,6 +37,142 @@ public class VetReviewController {
       VetReviewService vetReviewService, VetReviewToVetReviewResponseMapper mapper) {
     this.vetReviewService = vetReviewService;
     this.mapper = mapper;
+  }
+
+  /**
+   * Streams a batch of vet reviews as a JSON stream with built-in back-pressure support.
+   *
+   * <p>This endpoint returns up to {@code limit} reviews, starting from {@code offset}, emitting
+   * one element per second. It also sets response headers to convey pagination and authorization
+   * information.
+   *
+   * @param offset the zero-based index of the first review to include in the stream (default 0)
+   * @param limit the maximum number of reviews to return in this batch (default 10)
+   * @return a {@code Mono} emitting an HTTP 200 OK response containing a {@code Flux} of {@link
+   *     VetReviewResponse} objects, or a 500 error with an empty stream if an exception occurs
+   *     during response creation
+   * @header Authorization Bearer test
+   * @header Expected-Stream-Size the total number of reviews available (retrieved via {@code
+   *     vetReviewService.count()}, defaults to 0 on count errors)
+   * @header Offset echo of the {@code offset} query parameter
+   * @header Limit echo of the {@code limit} query parameter
+   * @implSpec
+   *     <ul>
+   *       <li>Logs at INFO level each review as it is processed.
+   *       <li>Delays each element by 1 second to simulate back-pressure or pacing.
+   *       <li>Defaults the total count header to 0 and logs an ERROR if counting fails.
+   *       <li>Returns a server-error response with an empty stream on response construction
+   *           failures.
+   *     </ul>
+   */
+  @Get(
+      uri = "/reviewer-details/json-stream/back-pressure/batch",
+      produces = MediaType.APPLICATION_JSON_STREAM)
+  public Mono<MutableHttpResponse<Flux<VetReviewResponse>>> findBatchJsonStream(
+      @QueryValue(defaultValue = "0") int offset, @QueryValue(defaultValue = "10") int limit) {
+
+    Mono<Long> countMono =
+        vetReviewService
+            .count()
+            .onErrorResume(
+                err -> {
+                  // log and default to zero if the count fails
+                  log.error("Failed to count reviews, defaulting to 0", err);
+                  return Mono.just(0L);
+                });
+
+    Flux<VetReviewResponse> stream =
+        vetReviewService
+            .findBatch(offset, limit)
+            .delayElements(Duration.ofSeconds(1))
+            .map(mapper::toVetReviewResponse)
+            .doOnNext(vetReviewResponse -> log.info("Working on review: {}", vetReviewResponse));
+
+    return countMono
+        .map(
+            count ->
+                HttpResponse.ok(stream)
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer test")
+                    .header("Expected-Stream-Size", String.valueOf(clamp(count - offset, 0, limit)))
+                    .header("Total-Count", String.valueOf(count))
+                    .header("Offset", String.valueOf(offset))
+                    .header("Limit", String.valueOf(limit)))
+        .onErrorResume(
+            err -> {
+              // return a 500 with an empty stream if response creation fails
+              log.error("Error building streaming response", err);
+              return Mono.just(
+                  HttpResponse.<Flux<VetReviewResponse>>serverError().body(Flux.empty()));
+            });
+  }
+
+  /**
+   * Streams a batch of vet reviews as Server-Sent Events (SSE) with built-in back-pressure support.
+   *
+   * <p>This endpoint returns up to {@code limit} reviews, starting from {@code offset}, emitting
+   * one event per second. Each review is wrapped in an {@link io.micronaut.http.sse.Event} object.
+   * Response headers convey authorization, custom metadata, and the total stream size.
+   *
+   * @param offset the zero-based index of the first review to include in the stream (default 0)
+   * @param limit the maximum number of reviews to return in this batch (default 10)
+   * @return a {@code Mono} emitting an HTTP 200 OK response containing a {@code Flux} of {@link
+   *     io.micronaut.http.sse.Event}{@code <}{@link VetReviewResponse}{@code >} objects, or a 500
+   *     error with a single error event if an exception occurs during response creation
+   * @header Authorization Bearer \<test\>
+   * @header Expected-Stream-Size the total number of reviews available (retrieved via {@code
+   *     vetReviewService.count()}, defaults to 0 on count errors)
+   * @implSpec
+   *     <ul>
+   *       <li>Logs at INFO level each review as it is processed.
+   *       <li>Delays each element by 1 second to simulate pacing/back-pressure.
+   *       <li>Maps each domain object to {@link VetReviewResponse}, then wraps it in an SSE {@link
+   *           io.micronaut.http.sse.Event}.
+   *       <li>Defaults the total count header to 0 and logs an ERROR if counting fails.
+   *       <li>On response-building failure, returns HTTP 500 with a single SSE event containing an
+   *           error message comment.
+   *     </ul>
+   */
+  @Get(
+      uri = "/reviewer-details/sse-stream/back-pressure/batch",
+      produces = MediaType.TEXT_EVENT_STREAM)
+  public Mono<MutableHttpResponse<Flux<Event<VetReviewResponse>>>> findBatchSSE(
+      @QueryValue(defaultValue = "0") int offset, @QueryValue(defaultValue = "10") int limit) {
+
+    Mono<Long> countMono =
+        vetReviewService
+            .count()
+            .onErrorResume(
+                err -> {
+                  log.error("Failed to fetch total count – defaulting to 0", err);
+                  return Mono.just(0L);
+                });
+
+    Flux<Event<VetReviewResponse>> eventFlux =
+        vetReviewService
+            .findBatch(offset, limit)
+            .delayElements(Duration.ofSeconds(1))
+            .map(mapper::toVetReviewResponse)
+            .doOnNext(vetReviewResponse -> log.info("Working on review: {}", vetReviewResponse))
+            .map(Event::of);
+
+    return countMono
+        .map(
+            count ->
+                HttpResponse.ok(eventFlux)
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer <test>")
+                    .header("Total-Count", String.valueOf(count))
+                    .header("Expected-Stream-Size", String.valueOf(clamp(count - offset, 0, limit)))
+                    .header("Offset", String.valueOf(offset))
+                    .header("Limit", String.valueOf(limit)))
+        .onErrorResume(
+            err -> {
+              log.error("Failed to build SSE response", err);
+              Event<VetReviewResponse> errorEvent =
+                  Event.<VetReviewResponse>of(null).comment("Stream error: " + err.getMessage());
+              return Mono.just(
+                  HttpResponse.<Flux<Event<VetReviewResponse>>>serverError()
+                      .body(Flux.just(errorEvent)));
+            });
   }
 
   /**
@@ -79,7 +217,6 @@ public class VetReviewController {
    *
    * <ul>
    *   <li>If the count operation fails, it defaults the header value to 0.
-   *   <li>If an individual review fails to serialize, it is skipped and the stream continues.
    *   <li>If building the HTTP response fails, a 500 status with an empty stream is returned.
    * </ul>
    *
@@ -112,6 +249,7 @@ public class VetReviewController {
             count ->
                 HttpResponse.ok(stream)
                     .header(HttpHeaders.AUTHORIZATION, "Bearer test")
+                    .header("Total-Count", String.valueOf(count))
                     .header("Expected-Stream-Size", String.valueOf(count)))
         .onErrorResume(
             err -> {
@@ -130,7 +268,6 @@ public class VetReviewController {
    *
    * <ul>
    *   <li>If the total‐count lookup fails, it is logged and defaults to 0.
-   *   <li>If a single review fails to map or serialize, that event is skipped.
    *   <li>If the HTTP response cannot be constructed, a 500 status with a single SSE comment
    *       describing the error is returned.
    * </ul>
@@ -165,7 +302,7 @@ public class VetReviewController {
             count ->
                 HttpResponse.ok(eventFlux)
                     .header(HttpHeaders.AUTHORIZATION, "Bearer <test>")
-                    .header("X-Custom-Header", "my-value")
+                    .header("Total-Count", String.valueOf(count))
                     .header("Expected-Stream-Size", String.valueOf(count)))
         .onErrorResume(
             err -> {

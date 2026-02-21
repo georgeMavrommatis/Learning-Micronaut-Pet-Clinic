@@ -1,6 +1,7 @@
 package com.gmavrommatis.service;
 
 import com.gmavrommatis.config.mongo.document.VetReview;
+import com.gmavrommatis.config.mongo.operations.VetReviewMongoClient;
 import com.gmavrommatis.config.mongo.repository.VetReviewRepository;
 import com.gmavrommatis.mapper.CreateVetReviewRequestToVetReviewMapper;
 import com.gmavrommatis.model.request.CreateVetReviewRequest;
@@ -31,16 +32,19 @@ public class VetReviewService {
 
   private final ReactiveTransactionOperations<ClientSession> mongoTx;
   private final VetReviewRepository vetReviewRepository;
+  private final VetReviewMongoClient vetReviewMongoClient;
   private final VetService vetService;
   private final CreateVetReviewRequestToVetReviewMapper mapper;
 
   public VetReviewService(
       ReactiveTransactionOperations<ClientSession> mongoTx,
       VetReviewRepository vetReviewRepository,
+      VetReviewMongoClient vetReviewMongoClient,
       VetService vetService,
       CreateVetReviewRequestToVetReviewMapper mapper) {
     this.mongoTx = mongoTx;
     this.vetReviewRepository = vetReviewRepository;
+    this.vetReviewMongoClient = vetReviewMongoClient;
     this.vetService = vetService;
     this.mapper = mapper;
   }
@@ -63,7 +67,27 @@ public class VetReviewService {
 
   public Mono<Long> count() {
 
-    return vetReviewRepository.count().defaultIfEmpty(0L);
+    return Mono.from(
+        mongoTx.withTransaction(
+            TransactionDefinition.READ_ONLY,
+            mongoStatus -> vetReviewRepository.count().defaultIfEmpty(0L)));
+  }
+
+  /**
+   * Retrieves a batch of {@link VetReview} documents within a read-only transaction.
+   *
+   * <p>Performs an offset/limit query via the {@link VetReviewMongoClient}. The operation is
+   * executed in a {@link TransactionDefinition#READ_ONLY} transaction.
+   *
+   * @param offset the number of documents to skip (zero-based)
+   * @param limit the maximum number of documents to retrieve
+   * @return a {@link Flux} emitting up to {@code limit} {@code VetReview} instances
+   */
+  public Flux<VetReview> findBatch(int offset, int limit) {
+    return Flux.from(
+        mongoTx.withTransaction(
+            TransactionDefinition.READ_ONLY,
+            mongoStatus -> vetReviewMongoClient.findBatch(offset, limit)));
   }
 
   /**

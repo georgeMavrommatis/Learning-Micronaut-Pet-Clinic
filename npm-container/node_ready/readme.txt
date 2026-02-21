@@ -4,6 +4,10 @@
 #2 docker-compose up -d
 
 #3
+    #for testing backpressure
+        #A navigate to your browser at http://127.0.0.1:8000/websocket_stream_back_pressure.html
+        #B hit load more with the number of your choice
+
     #for testing streaming json
-        #A navigate to your browser at http://127.0.0.1:8000/json_stream.html
+        #A navigate to your browser at http://127.0.0.1:8000/json_stream_back_pressure.html
 

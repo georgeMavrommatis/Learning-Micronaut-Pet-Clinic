@@ -131,6 +131,14 @@
       <scope>compile</scope>
     </dependency>
 
+    <!-- Micronaut WebSocket dependency,
+    provides support for building WebSocket clients and servers in a Micronaut application.
+    provides the classes and annotations for WebSocket endpoints (@ServerWebSocket, @OnMessage, etc.).-->
+    <dependency>
+      <groupId>io.micronaut</groupId>
+      <artifactId>micronaut-websocket</artifactId>
+    </dependency>
+
     <dependency>
       <groupId>org.yaml</groupId>
       <artifactId>snakeyaml</artifactId>
@@ -247,6 +255,12 @@
             <path>
               <groupId>io.micronaut.data</groupId>
               <artifactId>micronaut-data-document-processor</artifactId>
+            </path>
+
+            <!-- Including this allows other parts of the build (like plugins) to reference the Micronaut WebSocket library -->
+            <path>
+              <groupId>io.micronaut</groupId>
+              <artifactId>micronaut-websocket</artifactId>
             </path>
 
             <!-- 6) Any other APTs you need (e.g. Micronaut HTTP validation) -->

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Vet Reviews Stream (WebSocket Back‑Pressure)</title>
+  <style>
+    body { font-family: sans-serif; padding: 1rem; }
+    label, button { margin-right: 0.5rem; }
+    input[type="number"] { width: 6ch; padding: 0.2rem; }
+    ul { margin-top: 1rem; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .meta { font-style: italic; color: #666; margin-bottom: 0.5rem; }
+  </style>
+</head>
+<body>
+<h1>Streaming Vet Reviews</h1>
+
+<label>
+  Limit:
+  <input id="limitInput" type="number" value="10" min="1" />
+</label>
+<button id="fetchBtn">Fetch Next Batch</button>
+
+<div id="info" class="meta"></div>
+<ul id="reviews"></ul>
+
+<script>
+  const reviewsList = document.getElementById('reviews');
+  const fetchBtn    = document.getElementById('fetchBtn');
+  const limitInput  = document.getElementById('limitInput');
+  const infoDiv     = document.getElementById('info');
+
+  // 1. Start disabled until WS actually connects
+  fetchBtn.disabled = true;
+
+  const ws = new WebSocket('ws://localhost:8080/vet-review/reviewer-details/back-pressure');
+
+  let expectedCount = 0;
+  let receivedCount = 0;
+
+  ws.onopen = () => {
+    console.log('→ WebSocket open');
+    // 2. Now that we’re connected, let the user fetch
+    fetchBtn.disabled = false;
+  };
+
+  ws.onmessage = (event) => {
+    // 3. Always dump the raw data so you can see what arrives
+    console.log('→ RAW FRAME:', event.data);
+
+    let msg;
+    try {
+      msg = JSON.parse(event.data);
+    } catch (e) {
+      console.error('✖ JSON parse error:', event.data, e);
+      return;
+    }
+
+    // 4. Handle metadata
+    if (msg.webSocketMetadataResponse) {
+      expectedCount = msg.webSocketMetadataResponse.expectedStreamSize;
+      receivedCount = 0;
+      infoDiv.textContent = `Expecting ${expectedCount} review${expectedCount===1?'':'s'}…`;
+      return;
+    }
+
+    // 5. Handle each review object
+    const li = document.createElement('li');
+    li.textContent = JSON.stringify(msg);
+    reviewsList.appendChild(li);
+
+    receivedCount++;
+    // 6. Once the batch is done, re-enable the button
+    if (receivedCount >= expectedCount) {
+      infoDiv.textContent = `Stream complete (${receivedCount} received)`;
+      fetchBtn.disabled = false;
+    }
+  };
+
+  ws.onerror = (err) => {
+    console.error('✖ WebSocket error', err);
+    infoDiv.textContent = 'Error in stream';
+    fetchBtn.disabled = false;
+  };
+
+  ws.onclose = () => {
+    console.log('→ WebSocket closed');
+    infoDiv.textContent = 'Connection closed';
+    fetchBtn.disabled = true;
+  };
+
+  // 7. Send the NEXT command when you click
+  fetchBtn.addEventListener('click', () => {
+    const limit = parseInt(limitInput.value, 10) || 1;
+    reviewsList.innerHTML = '';
+    infoDiv.textContent = 'Waiting for metadata…';
+    fetchBtn.disabled = true;
+    ws.send(`NEXT ${limit}`);
+  });
+</script>
+
+</body>
+</html>
