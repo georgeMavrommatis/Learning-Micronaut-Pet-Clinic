@@ -56,25 +56,60 @@
       <scope>provided</scope>
     </dependency>
 
-    <!-- JPA and Hibernate reactive, handles transactions and sessions -->
+    <!--R2DBC-->
+
+    <!--
+    Full Micronaut Data support for R2DBC (reactive database access)
+    Enables:
+      Repository abstractions (CRUD, queries)
+      Declarative @Repository interfaces
+      Reactive return types (Mono, Flux) integrated with Micronaut
+      Automatic mapping of entities to database rows
+      Integrates with Micronaut's transaction management, so r2dbcTx.withTransaction() works
+    -->
     <dependency>
       <groupId>io.micronaut.data</groupId>
-      <artifactId>micronaut-data-hibernate-reactive</artifactId>
-      <scope>compile</scope>
+      <artifactId>micronaut-data-r2dbc</artifactId>
     </dependency>
 
-    <!--Hibernate Reactive cannot use the blocking JDBC driver— it needs a non-blocking, Netty-based driver under the covers.-->
+    <!--
+    Provides a connection pool implementation for R2DBC
+    Wraps a raw R2DBC driver (like r2dbc-postgresql) with:
+      initialSize / maxSize control
+      maxIdleTime, maxAcquireTime
+      Connection reuse
+      Integrates automatically with Micronaut Data R2DBC
+    -->
     <dependency>
-      <groupId>io.vertx</groupId>
-      <artifactId>vertx-pg-client</artifactId>
-      <scope>compile</scope>
+      <groupId>io.r2dbc</groupId>
+      <artifactId>r2dbc-pool</artifactId>
     </dependency>
 
-    <!-- Reactor HTTP client and Reactor integration (converters, instrumentation, ability to return Reactor types from our controllers, etc.)  -->
+    <!--
+    Reactive PostgreSQL driver for R2DBC
+    Implements the PostgreSQL protocol over TCP
+    Supports:
+      Fully reactive Mono/Flux queries
+      Transactions
+      Prepared statements, batch queries
+      Backpressure support via reactive streams
+    -->
+    <dependency>
+      <groupId>io.r2dbc</groupId>
+      <artifactId>r2dbc-postgresql</artifactId>
+      <version>0.8.13.RELEASE</version>
+    </dependency>
+
     <dependency>
       <groupId>io.micronaut.reactor</groupId>
       <artifactId>micronaut-reactor</artifactId>
       <scope>compile</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.yaml</groupId>
+      <artifactId>snakeyaml</artifactId>
+      <scope>runtime</scope>
     </dependency>
 
     <!--aggregated jupiter artifact already brings in junit-jupiter-engine,

@@ -1,8 +1,11 @@
 package com.gmavrommatis.config.repository;
 
 import com.gmavrommatis.config.domain.Specialty;
-import io.micronaut.data.annotation.Repository;
-import io.micronaut.data.repository.reactive.ReactorCrudRepository;
+import io.micronaut.data.annotation.Query;
+import io.micronaut.data.model.query.builder.sql.Dialect;
+import io.micronaut.data.r2dbc.annotation.R2dbcRepository;
+import io.micronaut.data.repository.reactive.ReactiveStreamsCrudRepository;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 /**
@@ -10,30 +13,44 @@ import reactor.core.publisher.Mono;
  *
  * @author GewrgiosMmavrommatis
  */
-@SuppressWarnings("unused")
-@Repository
-public interface SpecialtyRepository extends ReactorCrudRepository<Specialty, Long> {
+@R2dbcRepository(dialect = Dialect.POSTGRES)
+public interface SpecialtyRepository extends ReactiveStreamsCrudRepository<Specialty, Long> {
 
   /**
-   * Finds a {@link Specialty} by its unique name.
+   * Finds a {@link Specialty} by its name.
    *
-   * <p>Executes a reactive lookup; the resulting {@code Mono} will complete with the found entity
-   * or complete empty if no match is found.
+   * <p>This method returns a {@link Mono} that will:
    *
-   * @param name the unique name of the specialty to look up
-   * @return a {@code Mono<Specialty>} that emits the matching specialty, or completes empty if none
-   *     exists
+   * <ul>
+   *   <li>Emit the {@link Specialty} if a matching specialty is found.
+   *   <li>Complete empty if no specialty with the given name exists.
+   *   <li>Signal an error if there is a database access issue.
+   * </ul>
+   *
+   * <p>The search is typically case-sensitive depending on the underlying database collation.
+   *
+   * @param name the name of the specialty to search for; must not be {@code null}
+   * @return a {@link Mono} emitting the matching {@link Specialty}, or empty if none found
    */
   Mono<Specialty> findByName(String name);
 
   /**
-   * Deletes all specialties matching the given name.
+   * Retrieves all {@link Specialty} entities associated with the specified veterinarian.
    *
-   * <p>Performs a reactive delete operation; the resulting {@code Mono} emits the number of rows
-   * that were deleted.
+   * <p>Executes a raw SQL query joining the <code>petclinic.specialties</code> table with the
+   * <code>petclinic.vet_specialties</code> join table to fetch only those specialties linked to the
+   * given vet ID.
    *
-   * @param name the name of the specialty (or specialties) to delete
-   * @return a {@code Mono<Long>} emitting the count of deleted records
+   * @param vetId the unique identifier of the veterinarian whose specialties are to be fetched
+   * @return a {@link Flux} emitting each {@code Specialty} associated with the specified vet;
+   *     completes empty if the vet has no specialties or does not exist
    */
-  Mono<Long> deleteByName(String name);
+  @Query(
+      """
+            SELECT s.*
+            FROM petclinic.specialties s
+            JOIN petclinic.vet_specialties vs ON s.id = vs.specialty_id
+            WHERE vs.vet_id = :vetId
+            """)
+  Flux<Specialty> findByVetId(Long vetId);
 }

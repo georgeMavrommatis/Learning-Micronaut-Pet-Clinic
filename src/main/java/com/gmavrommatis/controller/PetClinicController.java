@@ -1,26 +1,29 @@
 package com.gmavrommatis.controller;
 
 import com.gmavrommatis.model.response.PetClinicResponse;
-import com.gmavrommatis.service.PetClinicService;
+import com.gmavrommatis.service.VetService;
 import io.micronaut.data.model.Pageable;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
 import io.micronaut.http.annotation.QueryValue;
+import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
 /**
  * REST controller for fetching Pet Clinic details.
  *
  * @author GewrgiosMmavrommatis
+ * @version 1.0
  */
+@Slf4j
 @Controller("/pet-clinic")
 public class PetClinicController {
 
-  private final PetClinicService petClinicService;
+  private final VetService vetService;
 
-  public PetClinicController(PetClinicService petClinicService) {
-    this.petClinicService = petClinicService;
+  public PetClinicController(VetService vetService) {
+    this.vetService = vetService;
   }
 
   /**
@@ -38,6 +41,7 @@ public class PetClinicController {
   @Get("/details")
   public Mono<HttpResponse<PetClinicResponse>> petClinicDetails(
       @QueryValue(defaultValue = "0") int page, @QueryValue(defaultValue = "10") int size) {
-    return petClinicService.getPetClinicDetails(Pageable.from(page, size)).map(HttpResponse::ok);
+    log.info("PetClinicController petClinicDetails");
+    return vetService.getVetsWithSpecialties(Pageable.from(page, size)).map(HttpResponse::ok);
   }
 }

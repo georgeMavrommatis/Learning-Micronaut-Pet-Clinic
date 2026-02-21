@@ -2,9 +2,12 @@ package com.gmavrommatis.service;
 
 import com.gmavrommatis.config.domain.Specialty;
 import com.gmavrommatis.config.repository.SpecialtyRepository;
-import io.micronaut.transaction.annotation.Transactional;
+import io.micronaut.transaction.TransactionDefinition;
+import io.micronaut.transaction.reactive.ReactiveTransactionOperations;
+import io.r2dbc.spi.Connection;
 import jakarta.inject.Singleton;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -19,79 +22,96 @@ import reactor.core.publisher.Mono;
 public class SpecialtyService {
 
   private final SpecialtyRepository specialtyRepository;
+  private final ReactiveTransactionOperations<Connection> r2dbcTx;
 
-  public SpecialtyService(SpecialtyRepository specialtyRepository) {
+  public SpecialtyService(
+      SpecialtyRepository specialtyRepository, ReactiveTransactionOperations<Connection> r2dbcTx) {
     this.specialtyRepository = specialtyRepository;
+    this.r2dbcTx = r2dbcTx;
   }
 
   /**
    * Retrieves all specialties.
    *
-   * <p>Streams all {@link Specialty} entities from the repository.
-   *
    * @return a {@link Flux} emitting each {@code Specialty} entity
    */
-  @Transactional(readOnly = true)
   public Flux<Specialty> findAll() {
-    log.debug("Request to get all Specialties");
-    return specialtyRepository.findAll();
+    log.info("SpecialtyService findAll");
+    return Flux.from(
+        r2dbcTx.withTransaction(
+            TransactionDefinition.READ_ONLY,
+            r2dbcStatus -> // R2DBC Read only transaction
+            Flux.from(specialtyRepository.findAll())));
   }
 
   /**
-   * Creates a new specialty with the specified name.
+   * Retrieves a specialty by its unique identifier within a read-only R2DBC transaction.
    *
-   * <p>Persists a new {@link Specialty} entity. If a specialty with the same name already exists,
-   * the repository may emit an error.
-   *
-   * @param name the name of the new specialty
-   * @return a {@link Mono} emitting the saved {@code Specialty} entity
-   * @throws IllegalArgumentException if the repository enforces uniqueness
+   * @param id the unique identifier of the specialty to retrieve
+   * @return a {@link Flux<Specialty>} emitting the matching specialty if found, or completing empty
+   *     if none exists
    */
-  @Transactional
-  public Mono<Specialty> create(String name) {
+  public Flux<Specialty> findById(Long id) {
+    return Flux.from(
+        r2dbcTx.withTransaction(
+            TransactionDefinition.READ_ONLY,
+            r2dbcStatus -> // R2DBC Read only transaction
+            Flux.from(specialtyRepository.findById(id))));
+  }
+
+  /**
+   * Retrieves a specialty by its unique name within a read-only R2DBC transaction.
+   *
+   * @param name the unique name of the specialty to retrieve
+   * @return a {@link Mono<Specialty>} emitting the matching specialty if found, or completing empty
+   *     if none exists
+   */
+  public Mono<Specialty> findByName(String name) {
+    return Mono.from(
+        r2dbcTx.withTransaction(
+            TransactionDefinition.READ_ONLY,
+            r2dbcStatus -> // R2DBC Read only transaction
+            Mono.from(specialtyRepository.findByName(name))));
+  }
+
+  /**
+   * Creates and persists a new {@link Specialty} with the specified name.
+   *
+   * @param name the unique name of the specialty to create
+   * @return the persisted {@link Specialty} entity with its generated ID
+   */
+  public Specialty create(String name) {
     Specialty s = new Specialty();
     s.setName(name);
-    return specialtyRepository.save(s);
+    return Mono.from(
+            r2dbcTx.withTransaction(
+                TransactionDefinition.DEFAULT,
+                r2dbcStatus -> // R2DBC DEFAULT transaction
+                Mono.from(specialtyRepository.save(s))))
+        .block();
   }
 
   /**
-   * Updates the name of an existing specialty.
+   * Updates the name of an existing {@link Specialty}.
    *
-   * <p>Finds the {@link Specialty} by its current name, errors if not found, then updates its name
-   * and persists the change.
-   *
-   * @param existingName the current unique name of the specialty
-   * @param newName the new name to assign
-   * @return a {@link Mono} emitting the updated {@code Specialty}
+   * @param existingName the current unique name of the specialty to update
+   * @param newName the new name to assign to the specialty
+   * @return the updated {@link Specialty} entity with its new name
    * @throws NoSuchElementException if no specialty with {@code existingName} exists
-   * @throws IllegalArgumentException if the new name violates constraints
    */
-  @Transactional
-  public Mono<Specialty> update(String existingName, String newName) {
-    return specialtyRepository
-        .findByName(existingName)
-        .switchIfEmpty(
-            Mono.error(new NoSuchElementException("Specialty not found: " + existingName)))
-        // flatMap unwraps the inner Mono<Specialty> into the outer stream, the map would
-        // encapsulate further into another Mono<Mono<Specialty>>
-        .flatMap(
-            specialty -> {
-              specialty.setName(newName);
-              return specialtyRepository.update(specialty);
-            });
-  }
+  public Specialty update(String existingName, String newName) {
+    /*check if specialty exists*/
+    Specialty s =
+        Optional.ofNullable(
+                Mono.from(
+                        r2dbcTx.withTransaction(
+                            TransactionDefinition.DEFAULT,
+                            r2dbcStatus -> // R2DBC DEFAULT transaction
+                            Mono.from(specialtyRepository.findByName(existingName))))
+                    .block())
+            .orElseThrow(() -> new NoSuchElementException("Specialty not found: " + existingName));
 
-  /**
-   * Deletes all specialties matching the given name.
-   *
-   * <p>Performs a reactive delete operation; the resulting {@code Mono} emits the count of deleted
-   * records.
-   *
-   * @param name the unique name of the specialty to delete
-   * @return a {@link Mono} emitting the number of deleted specialties
-   */
-  @Transactional
-  public Mono<Long> deleteByName(String name) {
-    return specialtyRepository.deleteByName(name);
+    s.setName(newName);
+    return Mono.from(specialtyRepository.update(s)).block();
   }
 }

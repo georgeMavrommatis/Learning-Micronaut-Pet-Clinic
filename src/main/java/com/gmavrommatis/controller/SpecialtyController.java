@@ -1,21 +1,23 @@
 package com.gmavrommatis.controller;
 
+import com.gmavrommatis.config.domain.Specialty;
 import com.gmavrommatis.model.request.SpecialtyRequest;
 import com.gmavrommatis.model.response.SpecialtyResponse;
 import com.gmavrommatis.service.SpecialtyService;
 import io.micronaut.http.HttpResponse;
-import io.micronaut.http.MutableHttpResponse;
 import io.micronaut.http.annotation.*;
 import java.util.List;
-import java.util.NoSuchElementException;
-import reactor.core.publisher.Mono;
+import java.util.Optional;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * REST controller that handles CRUD operations for {@code Specialty}.
  *
  * @author GewrgiosMmavrommatis
+ * @version 1.0
  */
 @Controller("/specialty")
+@Slf4j
 public class SpecialtyController {
 
   private final SpecialtyService specialtyService;
@@ -25,87 +27,55 @@ public class SpecialtyController {
   }
 
   /**
-   * Retrieves all specialties in a reactive, non-blocking manner.
+   * Retrieves all specialties in a synchronous, blocking manner.
    *
-   * <p>Streams all {@code Specialty} entities, maps each to a {@link SpecialtyResponse}, collects
-   * them into a {@code List}, and wraps the result in a 200 OK {@code HttpResponse}.
-   *
-   * @return a {@link Mono} emitting an {@link HttpResponse} with a {@code List<SpecialtyResponse>}
-   *     and HTTP status 200 OK
+   * @return an {@link HttpResponse} with status 201 Created and a list of specialties
    */
   @Get
-  public Mono<HttpResponse<List<SpecialtyResponse>>> findAll() throws Exception {
-    return specialtyService
-        .findAll() // Flux<Specialty>
-        .map(s -> SpecialtyResponse.builder().name(s.getName()).build())
-        .collectList() // Mono<List<SpecialtyResponse>>
-        .map(HttpResponse::ok);
+  public HttpResponse<List<SpecialtyResponse>> findAll() {
+    log.info("SpecialtyController findAll");
+    List<Specialty> specialties =
+        Optional.ofNullable(specialtyService.findAll().collectList().block()).orElse(List.of());
+
+    if (specialties.isEmpty()) {
+      throw new RuntimeException("No specialties found");
+    }
+
+    return HttpResponse.created(
+        specialties.stream()
+            .map(specialty -> SpecialtyResponse.builder().name(specialty.getName()).build())
+            .toList());
   }
 
   /**
-   * Creates a new specialty.
+   * Creates a new specialty with the given name.
    *
-   * <p>Accepts a {@link SpecialtyRequest} in the request body, delegates to the service to create
-   * the entity, maps the result to a {@link SpecialtyResponse}, and returns it with HTTP status 201
-   * Created.
-   *
-   * @param request the {@link SpecialtyRequest} containing the name of the new specialty
-   * @return a {@link Mono} emitting an {@link HttpResponse} with the created {@code
-   *     SpecialtyResponse} and HTTP status 201 Created
+   * @param request the {@link SpecialtyRequest} containing the name of the specialty to create
+   * @return an {@link HttpResponse} with status 201 Created and the created {@code
+   *     SpecialtyResponse}
    */
   @Post
-  public Mono<HttpResponse<SpecialtyResponse>> create(@Body SpecialtyRequest request) {
-    return specialtyService
-        .create(request.getName())
-        .map(s -> SpecialtyResponse.builder().name(s.getName()).build())
-        .map(HttpResponse::created);
+  public HttpResponse<SpecialtyResponse> create(@Body SpecialtyRequest request) {
+    Specialty created = specialtyService.create(request.getName());
+    return HttpResponse.created(SpecialtyResponse.builder().name(created.getName()).build());
   }
 
   /**
    * Renames an existing specialty.
    *
-   * <p>Takes the current specialty name as a path variable and a {@link SpecialtyRequest} with the
-   * new name in the body. Delegates to the service to perform the update, then maps the result to a
-   * 200 OK {@link SpecialtyResponse}. Any exception is propagated for handling via a custom
-   * exception handler.
-   *
    * @param name the current name of the specialty to rename
    * @param request the {@link SpecialtyRequest} containing the new name
-   * @return a {@link Mono} emitting an {@link HttpResponse} with the updated {@code
-   *     SpecialtyResponse} and HTTP status 200 OK
+   * @return an {@link HttpResponse} with status 200 OK and the updated {@code SpecialtyResponse}
    */
   @Put("/{name}")
-  public Mono<HttpResponse<SpecialtyResponse>> rename(
+  public HttpResponse<SpecialtyResponse> rename(
       @PathVariable String name, @Body SpecialtyRequest request) {
 
-    return specialtyService
-        .update(name, request.getName())
-        // on success, wrap the DTO in a 200 OK
-        .onErrorMap(
-            Exception.class, // we can specify subclass exceptions instead
-            e -> e)
-        .map(
-            updated ->
-                HttpResponse.ok(SpecialtyResponse.builder().name(updated.getName()).build()));
-  }
-
-  /**
-   * Deletes the specialty with the specified name in a reactive, non-blocking manner.
-   *
-   * @param name the unique name of the specialty to delete
-   * @return a {@code Mono<HttpResponse<String>>} that emits:
-   *     <ul>
-   *       <li>204 No Content if the delete succeeded
-   *       <li>400 Bad Request with “Specialty not found: {name}” if none matched
-   *     </ul>
-   */
-  @Delete("/{name}")
-  public Mono<MutableHttpResponse<String>> deleteByName(@PathVariable String name) {
-    return specialtyService
-        .deleteByName(name)
-        .map(deletedCount -> HttpResponse.<String>noContent())
-        .onErrorResume(
-            NoSuchElementException.class,
-            e -> Mono.just(HttpResponse.badRequest("Specialty not found: " + name)));
+    try {
+      Specialty updated = specialtyService.update(name, request.getName());
+      return HttpResponse.ok(SpecialtyResponse.builder().name(updated.getName()).build());
+    } catch (Exception e) {
+      throw e;
+    }
   }
 }

@@ -19,9 +19,9 @@ CREATE TABLE IF NOT EXISTS petclinic.vets (
 CREATE TABLE IF NOT EXISTS petclinic.vet_specialties (
   vet_id       INT NOT NULL
                   REFERENCES petclinic.vets(id)
-                  ON DELETE CASCADE,
+                  ON DELETE CASCADE, --  if a vet record is deleted then all relation rows are deleted automatically
   specialty_id INT NOT NULL
                   REFERENCES petclinic.specialties(id)
-                  ON DELETE CASCADE,
+                  ON DELETE CASCADE, --  if a speciallty record is deleted then all relation rows are deleted automatically
   PRIMARY KEY (vet_id, specialty_id)
 );

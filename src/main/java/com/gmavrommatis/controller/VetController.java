@@ -5,18 +5,17 @@ import com.gmavrommatis.model.request.CreateVetRequest;
 import com.gmavrommatis.model.request.UpdateVetRequest;
 import com.gmavrommatis.model.response.VetResponse;
 import com.gmavrommatis.service.VetService;
+import io.micronaut.data.model.Pageable;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.MutableHttpResponse;
 import io.micronaut.http.annotation.*;
 import java.util.List;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 /**
  * REST controller for managing veterinarian records.
  *
  * @author GewrgiosMmavrommatis
- * @version 1.0
  */
 @Controller("/vet")
 public class VetController {
@@ -29,20 +28,29 @@ public class VetController {
     this.vetToVetResponseMapper = vetToVetResponseMapper;
   }
 
+  /**
+   * Retrieves a paginated list of veterinarians in a reactive, non-blocking fashion.
+   *
+   * @param page zero-based page index (defaults to 0 if not specified)
+   * @param size the maximum number of items per page (defaults to 10 if not specified)
+   * @return a {@link Mono} emitting an {@link HttpResponse} containing a {@code List<VetResponse>}
+   *     and HTTP status 200 OK
+   */
   @Get
-  public Mono<HttpResponse<List<VetResponse>>> vetDetails() throws Exception {
+  public Mono<HttpResponse<List<VetResponse>>> vetDetails(
+      @QueryValue(defaultValue = "0") int page, @QueryValue(defaultValue = "10") int size) {
     return vetService
-        .findAll()
-        .map(vetToVetResponseMapper::toVetResponseEager)
+        .findAllPageable(Pageable.from(page, size))
+        .map(vetToVetResponseMapper::toVetResponse)
         .collectList()
         .map(HttpResponse::ok);
   }
 
   /**
-   * Searches for veterinarians whose last name starts with the given prefix and who have at least
-   * one of the specified specialties.
+   * Searches for veterinarians whose last name equals given lastName and who have at least one of
+   * the specified specialties.
    *
-   * @param lastNamePrefix the prefix to match against each vet’s last name (exact prefix match)
+   * @param lastName the lastName to match against each vet’s last name.
    * @param specialtyNames the list of specialty names; only vets with at least one matching
    *     specialty are returned
    * @return a {@code Mono<HttpResponse<List<VetResponse>>>} emitting:
@@ -50,15 +58,14 @@ public class VetController {
    *       <li>200 OK with the list of matching vet DTOs when successful
    *     </ul>
    */
-  @Get("/{lastNamePrefix}/{specialtyNames}")
+  @Get("/{lastName}/{specialtyNames}")
   public Mono<HttpResponse<List<VetResponse>>> findByLastNameAndSpecialties(
-      @PathVariable String lastNamePrefix,
+      @PathVariable String lastName,
       @PathVariable List<String> specialtyNames // Micronaut will split “1,2,5” → [1,2,5]
       ) {
-    /*With Query*/
+
     return vetService
-        .findByLastNameAndSpecialtiesByQuery(lastNamePrefix, specialtyNames)
-        .map(vetToVetResponseMapper::toVetResponseEager)
+        .findByLastName(lastName, specialtyNames)
         .collectList() // Mono<List<VetResponse>>
         .map(HttpResponse::ok);
   }
@@ -74,10 +81,7 @@ public class VetController {
    */
   @Post
   public Mono<HttpResponse<VetResponse>> create(@Body CreateVetRequest request) {
-    return vetService
-        .createVet(request)
-        .map(vetToVetResponseMapper::toVetResponseEager)
-        .map(HttpResponse::ok);
+    return vetService.createVetWithSpecialties(request).map(HttpResponse::ok);
   }
 
   /**
@@ -94,7 +98,7 @@ public class VetController {
   public Mono<MutableHttpResponse<Object>> deleteByName(
       @PathVariable String firstName, @PathVariable String lastName) {
     return vetService
-        .deleteByName(firstName, lastName)
+        .deleteByNameWithCascade(firstName, lastName)
         // On success, emit a 204 No Content
         .thenReturn(HttpResponse.noContent())
         // If the Vet wasn’t found, emit a 404 with a message
@@ -117,7 +121,7 @@ public class VetController {
    *     </ul>
    */
   @Put("/{firstName}/{lastName}")
-  public Flux<HttpResponse<VetResponse>> update(
+  public Mono<HttpResponse<VetResponse>> update(
       @QueryValue(defaultValue = "0") int page,
       @QueryValue(defaultValue = "10") int size,
       @PathVariable String firstName,
@@ -126,8 +130,6 @@ public class VetController {
 
     return vetService
         .updateVetByName(firstName, lastName, request)
-        // map the domain Vet -> DTO
-        .map(vetToVetResponseMapper::toVetResponseEager)
         // wrap in 200 OK
         .map(HttpResponse::ok);
   }

@@ -3,26 +3,33 @@ package com.gmavrommatis.mapper;
 import com.gmavrommatis.config.domain.Vet;
 import com.gmavrommatis.model.response.VetResponse;
 import java.util.List;
-import org.mapstruct.IterableMapping;
 import org.mapstruct.Mapper;
-import org.mapstruct.Named;
 
+/**
+ * MapStruct mapper for converting {@link Vet} entities into {@link VetResponse} DTOs.
+ *
+ * <p>Provides methods for mapping a single {@code Vet} as well as lists of vets. Implemented at
+ * compile time by MapStruct.
+ *
+ * @author Your Name
+ */
 @Mapper(componentModel = "jsr330")
 public interface VetToVetResponseMapper {
 
-  /*** DETAILED MAPPING ***/
-
-  @Named("eagerVet")
-  VetResponse toVetResponseEager(Vet vet);
+  /**
+   * Converts a single {@link Vet} entity into a {@link VetResponse} DTO.
+   *
+   * @param vet the {@code Vet} entity to map; may be {@code null}
+   * @return the corresponding {@code VetResponse} DTO, or {@code null} if the input was {@code
+   *     null}
+   */
+  VetResponse toVetResponse(Vet vet);
 
   /**
-   * Maps a list of {@link Vet} entities to a list of {@link VetResponse} DTOs using detailed
-   * mapping.
+   * Converts a list of {@link Vet} entities into a list of {@link VetResponse} DTOs.
    *
-   * @param vets the list of {@code Vet} entities; may be {@code null}
-   * @return a list of fully populated {@code VetResponse} objects, or {@code null} if {@code vets}
-   *     is {@code null}
+   * @param vets the list of {@code Vet} entities to map; may be {@code null}
+   * @return a list of {@code VetResponse} DTOs, or {@code null} if the input list was {@code null}
    */
-  @IterableMapping(qualifiedByName = "eagerVet")
-  List<VetResponse> toVetResponseEagerList(List<Vet> vets);
+  List<VetResponse> toVetResponseList(List<Vet> vets);
 }
