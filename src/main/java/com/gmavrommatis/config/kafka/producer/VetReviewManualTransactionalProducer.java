@@ -1,4 +1,4 @@
-package com.gmavrommatis.config.kafka;
+package com.gmavrommatis.config.kafka.producer;
 
 import com.gmavrommatis.model.kafka.VetReviewNotificationEvent;
 import io.micronaut.context.annotation.Prototype;

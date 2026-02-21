@@ -1,6 +1,7 @@
 package com.gmavrommatis.service;
 
 import com.gmavrommatis.config.kafka.*;
+import com.gmavrommatis.config.kafka.producer.*;
 import com.gmavrommatis.config.mongo.document.VetReview;
 import com.gmavrommatis.config.mongo.operations.VetReviewMongoClient;
 import com.gmavrommatis.config.mongo.repository.VetReviewRepository;
@@ -15,10 +16,12 @@ import io.micronaut.transaction.TransactionDefinition;
 import io.micronaut.transaction.reactive.ReactiveTransactionOperations;
 import io.netty.channel.EventLoopGroup;
 import jakarta.inject.Singleton;
+import java.nio.charset.StandardCharsets;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.header.internals.RecordHeader;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
@@ -266,7 +269,9 @@ public class VetReviewService {
       producer = transactionalProducerPoolManager.acquireTransactional();
       // producer is effectively final, as it is only instantiated once with not null value.
       producer.sendReviewWithEventKeyTransactional(
-          KafkaKeys.VET_REVIEW_NOTIFICATION_KEY, mapper.toVetReviewNotificationEvent(request));
+          KafkaKeys.VET_REVIEW_NOTIFICATION_TRANSACTION_KEY,
+          "CustomHeader",
+          mapper.toVetReviewNotificationEvent(request));
 
     } catch (Exception ex) {
       log.error("Transactional Kafka send failed", ex);
@@ -284,13 +289,18 @@ public class VetReviewService {
 
       manualProducer.beginTransaction();
 
-      ProducerRecord<String, VetReviewNotificationEvent> record =
+      ProducerRecord<String, VetReviewNotificationEvent> producerRecord =
           new ProducerRecord<>(
               KafkaTopics.VET_REVIEW_NOTIFICATION_WITH_KEY_TRANSACTIONAL_MANUAL,
-              KafkaKeys.VET_REVIEW_NOTIFICATION_KEY,
+              KafkaKeys.VET_REVIEW_NOTIFICATION_TRANSACTION_MANUAL_KEY,
               mapper.toVetReviewNotificationEvent(request));
 
-      manualProducer.send(record);
+      /*We add a header*/
+      producerRecord
+          .headers()
+          .add(new RecordHeader("My-Header", "Manual-TX".getBytes(StandardCharsets.UTF_8)));
+
+      manualProducer.send(producerRecord);
 
       if ("Fail Kafka".equals(saved.getReviewer())) {
         throw new RuntimeException("Intentional fail");

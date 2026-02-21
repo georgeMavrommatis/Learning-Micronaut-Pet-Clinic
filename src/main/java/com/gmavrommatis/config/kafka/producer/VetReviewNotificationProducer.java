@@ -1,5 +1,6 @@
-package com.gmavrommatis.config.kafka;
+package com.gmavrommatis.config.kafka.producer;
 
+import com.gmavrommatis.config.kafka.KafkaTopics;
 import com.gmavrommatis.model.kafka.VetReviewNotificationEvent;
 import io.micronaut.configuration.kafka.annotation.KafkaClient;
 import io.micronaut.configuration.kafka.annotation.KafkaKey;

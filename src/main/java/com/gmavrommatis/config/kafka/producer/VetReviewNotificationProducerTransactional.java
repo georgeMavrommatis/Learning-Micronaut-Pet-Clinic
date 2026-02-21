@@ -1,11 +1,13 @@
-package com.gmavrommatis.config.kafka;
+package com.gmavrommatis.config.kafka.producer;
 
+import com.gmavrommatis.config.kafka.KafkaTopics;
 import com.gmavrommatis.model.kafka.VetReviewNotificationEvent;
 import io.micronaut.configuration.kafka.annotation.KafkaClient;
 import io.micronaut.configuration.kafka.annotation.KafkaKey;
 import io.micronaut.configuration.kafka.annotation.Topic;
 import io.micronaut.context.annotation.Property;
 import io.micronaut.context.annotation.Prototype;
+import io.micronaut.messaging.annotation.MessageHeader;
 import io.micronaut.scheduling.TaskExecutors;
 import org.apache.kafka.clients.producer.ProducerConfig;
 
@@ -30,5 +32,8 @@ Thus, due to Transactional we need A NEW instance every time it is injected or f
 public interface VetReviewNotificationProducerTransactional {
 
   @Topic(KafkaTopics.VET_REVIEW_NOTIFICATION_WITH_KEY_TRANSACTIONAL)
-  void sendReviewWithEventKeyTransactional(@KafkaKey String key, VetReviewNotificationEvent event);
+  void sendReviewWithEventKeyTransactional(
+      @KafkaKey String key,
+      @MessageHeader("My-Header") String myHeader,
+      VetReviewNotificationEvent event);
 }

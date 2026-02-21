@@ -1,4 +1,4 @@
-package com.gmavrommatis.config.kafka;
+package com.gmavrommatis.config.kafka.producer;
 
 import io.micronaut.context.BeanProvider;
 import jakarta.annotation.PreDestroy;

@@ -58,9 +58,8 @@ logger:
 #    org.mongodb.driver.protocol.command: DEBUG
 #    org.mongodb.driver.protocol.query: DEBUG
 #    org.apache.kafka: DEBUG
-    org.apache.kafka.clients.producer: DEBUG
-    org.apache.kafka.clients.consumer: DEBUG
-    io.micronaut.configuration.kafka: TRACE
+#    org.apache.kafka.clients.producer: DEBUG
+#    io.micronaut.configuration.kafka: TRACE
 
 
 # Start the WebSocket server
