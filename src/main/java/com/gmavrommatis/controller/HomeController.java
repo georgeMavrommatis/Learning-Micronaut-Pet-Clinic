@@ -7,6 +7,7 @@ import io.micronaut.http.annotation.Get;
 import io.micronaut.security.annotation.Secured;
 import io.micronaut.security.rules.SecurityRule;
 import io.micronaut.security.utils.SecurityService;
+import jakarta.annotation.Nullable;
 import java.net.URI;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Mono;
@@ -17,7 +18,7 @@ public class HomeController {
 
   private final SecurityService security;
 
-  public HomeController(SecurityService security) {
+  public HomeController(@Nullable SecurityService security) {
     this.security = security;
   }
 

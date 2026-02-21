@@ -51,8 +51,8 @@ public class SpecialtyService {
    * @return a {@link Flux<Specialty>} emitting the matching specialty if found, or completing empty
    *     if none exists
    */
-  public Flux<Specialty> findById(Long id) {
-    return Flux.from(
+  public Mono<Specialty> findById(Long id) {
+    return Mono.from(
         r2dbcTx.withTransaction(
             TransactionDefinition.READ_ONLY,
             r2dbcStatus -> // R2DBC Read only transaction
