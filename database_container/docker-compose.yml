@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: my_postgres_pet_clinic
+    restart: always
+    environment:
+      POSTGRES_DB: pet_clinic
+      POSTGRES_USER: pet_clinic
+      POSTGRES_PASSWORD: petclinic
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init_postgres_1:/docker-entrypoint-initdb.d
+
+volumes:
+  postgres_data:
