@@ -1,4 +1,4 @@
-package com.gmavrommatis.config.domain.l2;
+package com.gmavrommatis.config.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.micronaut.core.annotation.Introspected;

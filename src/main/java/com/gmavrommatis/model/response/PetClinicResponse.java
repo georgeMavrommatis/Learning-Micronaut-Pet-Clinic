@@ -17,4 +17,8 @@ import lombok.Data;
 public class PetClinicResponse {
 
   private List<VetResponse> vets;
+  private int page;
+  private int size;
+  private int totalPages;
+  private long totalElements;
 }

@@ -1,11 +1,12 @@
 package com.gmavrommatis.service;
 
-import com.gmavrommatis.config.domain.l1.Vet;
+import com.gmavrommatis.config.domain.Vet;
 import com.gmavrommatis.mapper.VetToPetClinicResponseMapper;
 import com.gmavrommatis.model.response.PetClinicResponse;
+import io.micronaut.data.model.Page;
+import io.micronaut.data.model.Pageable;
 import io.micronaut.transaction.annotation.Transactional;
 import jakarta.inject.Singleton;
-import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -18,24 +19,35 @@ import lombok.extern.slf4j.Slf4j;
 public class PetClinicService {
 
   private final VetService vetService;
-  private final VetToPetClinicResponseMapper mapper;
+  private final VetToPetClinicResponseMapper vetToPetClinicResponseMapper;
 
-  public PetClinicService(VetService vetService, VetToPetClinicResponseMapper mapper) {
+  public PetClinicService(
+      VetService vetService, VetToPetClinicResponseMapper vetToPetClinicResponseMapper) {
     this.vetService = vetService;
-    this.mapper = mapper;
+    this.vetToPetClinicResponseMapper = vetToPetClinicResponseMapper;
   }
 
   /**
-   * Retrieves detailed Pet Clinic information.
+   * Retrieves paginated Pet Clinic details.
    *
-   * <p>Fetches all veterinarians along with their specialties in a single transactional, read-only
-   * operation, then maps the result into a {@link PetClinicResponse}.
+   * <p>Fetches a page of {@link Vet} entities (with specialties eagerly loaded) via the {@code
+   * VetService}, converts them to {@link com.gmavrommatis.model.response.VetResponse} DTOs, and
+   * wraps them in a {@link com.gmavrommatis.model.response.PetClinicResponse} along with pagination
+   * metadata.
    *
-   * @return a {@code PetClinicResponse} containing detailed veterinarian data
+   * @param from the pagination parameters (zero-based page index and page size)
+   * @return a {@code PetClinicResponse} containing:
+   *     <ul>
+   *       <li>a list of vet DTOs for the requested page
+   *       <li>the current page index
+   *       <li>the requested page size
+   *       <li>the total number of pages
+   *       <li>the total number of elements across all pages
+   *     </ul>
    */
-  @Transactional(readOnly = true, value = "postgresql1")
-  public PetClinicResponse getPetClinicDetails() {
-    List<Vet> vets = vetService.findAll();
-    return mapper.toDetailedResponse(vets);
+  @Transactional(readOnly = true)
+  public PetClinicResponse getPetClinicDetails(Pageable from) {
+    Page<Vet> vetsPage = vetService.findAllPageable(from);
+    return vetToPetClinicResponseMapper.toDetailedResponsePageable(vetsPage);
   }
 }

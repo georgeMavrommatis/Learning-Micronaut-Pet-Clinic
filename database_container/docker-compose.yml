@@ -15,20 +15,5 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./init_postgres_1:/docker-entrypoint-initdb.d
 
-  postgres2:
-    image: postgres:15
-    container_name: my_postgres_pet_clinic_2
-    restart: always
-    environment:
-      POSTGRES_DB: pet_clinic
-      POSTGRES_USER: pet_clinic
-      POSTGRES_PASSWORD: petclinic
-    ports:
-      - "5433:5432"
-    volumes:
-      - postgres2_data:/var/lib/postgresql/data
-      - ./init_postgres_2:/docker-entrypoint-initdb.d
-
 volumes:
   postgres_data:
-  postgres2_data:

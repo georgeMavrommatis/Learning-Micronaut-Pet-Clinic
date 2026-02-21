@@ -1,35 +1,38 @@
 package com.gmavrommatis.config.repository;
 
-import com.gmavrommatis.config.domain.l1.Vet;
+import com.gmavrommatis.config.domain.Vet;
 import io.micronaut.data.annotation.Query;
 import io.micronaut.data.annotation.Repository;
 import io.micronaut.data.jpa.repository.JpaRepository;
-import jakarta.inject.Named;
+import io.micronaut.data.model.Page;
+import io.micronaut.data.model.Pageable;
 import java.util.List;
 import java.util.Optional;
 
 /**
- * Micronaut Data JPA repository for {@link Vet} entities.
- *
- * <p>Provides CRUD operations and custom queries for veterinarians. This repository is qualified
- * and named with "postgresql2" to distinguish it from other {@code VetRepository} beans in the
- * application context.
- *
- * <h3>Bean Configuration</h3>
- *
- * <ul>
- *   <li>{@code @Repository("postgresql2")} – registers this interface as a Bean with the name
- *       "postgresql2".
- *   <li>{@code @Named("postgresql2")} – allows injection by the qualifier "postgresql2".
- * </ul>
+ * Repository interface for {@link Vet} entities.
  *
  * @author GewrgiosMmavrommatis
- * @version 1.0
  */
-@SuppressWarnings("unused")
-@Named("postgresql1")
-@Repository("postgresql1")
-public interface VetRepositoryL1 extends JpaRepository<Vet, Long> {
+@Repository
+public interface VetRepository extends JpaRepository<Vet, Long> {
+
+  /**
+   * Retrieves a paginated list of all {@link Vet} entities.
+   *
+   * <p>Implemented automatically by Spring Data JPA to execute a query equivalent to:
+   *
+   * <pre>
+   * SELECT * FROM vets
+   * LIMIT :#{#pageable.pageSize}
+   * OFFSET :#{#pageable.pageNumber} * :#{#pageable.pageSize}
+   * </pre>
+   *
+   * @param pageable pagination parameters including page index (zero-based) and page size
+   * @return a {@link Page} of {@code Vet} entities for the requested page
+   */
+  @Override
+  Page<Vet> findAll(Pageable pageable);
 
   /**
    * Deletes all veterinarians matching the given first and last name.
