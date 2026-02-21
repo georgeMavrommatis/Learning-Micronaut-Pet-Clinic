@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CSRF Fetcher</title>
+</head>
+<body>
+<h1>Fetching CSRF token…</h1>
+<pre id="output"></pre>
+
+<script>
+  fetch('http://127.0.0.1:8080/csrf', {
+    credentials: 'include' // required to include cookies from cross-origin
+  })
+    .then(response => response.text())
+    .then(data => {
+      // Try to extract the CSRF token from the response body
+      const tokenFromBody = data.replace("csrf=", "").trim();
+
+      // Extract the CSRF cookie value manually
+      const csrfCookie = document.cookie
+        .split('; ')
+        .find(row => row.startsWith('CSRF-TOKEN='))
+        ?.split('=')[1];
+
+      // Output both values
+      document.getElementById('output').textContent =
+        `Token from body: ${tokenFromBody}\nToken from cookie: ${csrfCookie}`;
+    })
+    .catch(err => {
+      document.getElementById('output').textContent = 'Error: ' + err;
+    });
+</script>
+</body>
+</html>

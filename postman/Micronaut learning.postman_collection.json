@@ -1,10 +1,10 @@
 {
   "info": {
-    "_postman_id": "700a4d0e-27bc-4c22-9832-ae0a07c0db7c",
+    "_postman_id": "0b9b7faf-816f-4de1-bafc-a7444ae43e75",
     "name": "Micronaut learning",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "11550685",
-    "_collection_link": "https://go.postman.co/collection/11550685-700a4d0e-27bc-4c22-9832-ae0a07c0db7c?source=collection_link"
+    "_collection_link": "https://go.postman.co/collection/11550685-0b9b7faf-816f-4de1-bafc-a7444ae43e75?source=collection_link"
   },
   "item": [
     {
@@ -3928,7 +3928,7 @@
       ]
     },
     {
-      "name": "lesson 18 -security session auth",
+      "name": "18 -security session auth",
       "item": [
         {
           "name": "Authorizaton",
@@ -4178,14 +4178,333 @@
                 }
               },
               "response": []
-            },
+            }
+          ]
+        },
+        {
+          "name": "PetClinic",
+          "item": [
             {
-              "name": "save Vet fail",
+              "name": "get pet-clinic details",
+              "request": {
+                "auth": {
+                  "type": "noauth"
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "http://localhost:8080/pet-clinic/details",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "8080",
+                  "path": [
+                    "pet-clinic",
+                    "details"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "19- security session auth with csrf",
+      "item": [
+        {
+          "name": "PetClinic Copy",
+          "item": [
+            {
+              "name": "get pet-clinic details",
+              "request": {
+                "auth": {
+                  "type": "noauth"
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "http://localhost:8080/pet-clinic/details",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "8080",
+                  "path": [
+                    "pet-clinic",
+                    "details"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Authorizaton",
+          "item": [
+            {
+              "name": "login",
               "request": {
                 "auth": {
                   "type": "noauth"
                 },
                 "method": "POST",
+                "header": [
+                  {
+                    "key": "X-CSRF-TOKEN",
+                    "value": ".raDHXxEJD0w2PZeqpVQ0qg",
+                    "type": "text",
+                    "disabled": true
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"username\":\"alice\",\r\n    \"password\":\"alice@1\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "http://localhost:8080/login",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "8080",
+                  "path": [
+                    "login"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "retrieve session info",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "noauth"
+                },
+                "method": "GET",
+                "header": [],
+                "body": {
+                  "mode": "urlencoded",
+                  "urlencoded": [
+                    {
+                      "key": "username",
+                      "value": "alice",
+                      "type": "text",
+                      "uuid": "fbffc11f-bcdf-4186-b8bf-ab141f49cf3f"
+                    },
+                    {
+                      "key": "password",
+                      "value": "alice@1",
+                      "type": "text",
+                      "uuid": "b429a5c9-646e-402c-bb58-68cc5f2b9554"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "http://localhost:8080/admin/session",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "8080",
+                  "path": [
+                    "admin",
+                    "session"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "transfer-json",
+              "request": {
+                "auth": {
+                  "type": "noauth"
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"amount\":14.98,\r\n    \"to\":\"lice\",\r\n    \"note\":\"hello\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "http://localhost:8080/api/transfer",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "8080",
+                  "path": [
+                    "api",
+                    "transfer"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "api tranfer form",
+              "request": {
+                "auth": {
+                  "type": "noauth"
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "X-CSRF-TOKEN",
+                    "value": "TZ-Uzb76hDKXAZox5z3tDGD1XQGwu07LXk1nrSc8tPo.bU4-aUdSPdGV0qUgGjitng",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "urlencoded",
+                  "urlencoded": [
+                    {
+                      "key": "amount",
+                      "value": "100.0",
+                      "type": "text",
+                      "uuid": "36369a79-5131-4654-a6f8-c60a8e00edb3"
+                    },
+                    {
+                      "key": "to",
+                      "value": "me",
+                      "type": "text",
+                      "uuid": "3a295858-0d0e-45c5-95bf-4c2a989c74d0"
+                    },
+                    {
+                      "key": "note",
+                      "value": "done!",
+                      "type": "text",
+                      "uuid": "4d445aa0-c44a-40f8-bd2b-e92054974cff"
+                    },
+                    {
+                      "key": "",
+                      "value": "zy5kiO-qwbqAwBn_GitYSksP3vjGsbCXl-6588SYryA.WAOaG8piPKbDavThS6JjGQ",
+                      "type": "text",
+                      "uuid": "8b14297e-2e20-420e-918c-61dee7d46c1e"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "http://localhost:8080/api/transfer/form",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "8080",
+                  "path": [
+                    "api",
+                    "transfer",
+                    "form"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "csrf",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "noauth"
+                },
+                "method": "GET",
+                "header": [],
+                "body": {
+                  "mode": "urlencoded",
+                  "urlencoded": [
+                    {
+                      "key": "username",
+                      "value": "alice",
+                      "type": "text",
+                      "uuid": "fbffc11f-bcdf-4186-b8bf-ab141f49cf3f"
+                    },
+                    {
+                      "key": "password",
+                      "value": "alice@1",
+                      "type": "text",
+                      "uuid": "b429a5c9-646e-402c-bb58-68cc5f2b9554"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "http://localhost:8080/csrf",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "8080",
+                  "path": [
+                    "csrf"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "logout",
+              "request": {
+                "auth": {
+                  "type": "noauth"
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "http://localhost:8080/logout",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "8080",
+                  "path": [
+                    "logout"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Vet",
+          "item": [
+            {
+              "name": "get Vet details",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "noauth"
+                },
+                "method": "GET",
                 "header": [],
                 "body": {
                   "mode": "raw",
@@ -4197,7 +4516,7 @@
                   }
                 },
                 "url": {
-                  "raw": "http://localhost:8080/vet",
+                  "raw": "http://localhost:8080/vet?page=0&size=2",
                   "protocol": "http",
                   "host": [
                     "localhost"
@@ -4205,72 +4524,16 @@
                   "port": "8080",
                   "path": [
                     "vet"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "update Vet - (request not making sense)",
-              "request": {
-                "auth": {
-                  "type": "noauth"
-                },
-                "method": "PUT",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\r\n  \"firstName\": null,\r\n  \"lastName\": null,\r\n  \"specialties\": null\r\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "http://localhost:8080/vet/Nicholas/Robinson",
-                  "protocol": "http",
-                  "host": [
-                    "localhost"
                   ],
-                  "port": "8080",
-                  "path": [
-                    "vet",
-                    "Nicholas",
-                    "Robinson"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "update Vet - (request not making sense) 2",
-              "request": {
-                "auth": {
-                  "type": "noauth"
-                },
-                "method": "PUT",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\r\n  \"firstName\": null,\r\n  \"lastName\": null,\r\n  \"specialtyNames\": [\" \"]\r\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "0"
+                    },
+                    {
+                      "key": "size",
+                      "value": "2"
                     }
-                  }
-                },
-                "url": {
-                  "raw": "http://localhost:8080/vet/Nicholas/Robinson",
-                  "protocol": "http",
-                  "host": [
-                    "localhost"
-                  ],
-                  "port": "8080",
-                  "path": [
-                    "vet",
-                    "Nicholas",
-                    "Robinson"
                   ]
                 }
               },

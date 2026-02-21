@@ -49,6 +49,24 @@ micronaut:
       - pattern: /**
         access: isAuthenticated()
 
+    #reference https://micronaut-projects.github.io/micronaut-security/latest/guide/#io.micronaut.security.csrf.CsrfConfigurationProperties
+    #With session auth this will be stored under attributes of the SESSION /login authentication cookie produced.
+    csrf:
+      enabled: true
+      # Signed double-submit cookie token (so no server session is required)
+      signature-key: "c22ab2e27f1e41f29584c91d7a7e73fa6170d451dd45a8b7968d91f2f826ba6e"
+      # How the client sends/we read the token
+      header-name: X-CSRF-TOKEN        # default is X-CSRF-TOKEN
+      field-name: ""                 # disable form field resolver (set to empty)
+      #reference https://micronaut-projects.github.io/micronaut-security/latest/guide/#io.micronaut.security.csrf.filter.CsrfFilterConfigurationProperties
+      cookie-name: CSRF-TOKEN
+      # Enable csrf only for the following:
+      filter:
+        methods: [ POST, PUT, PATCH, DELETE ]              # default
+        content-types:
+          - application/x-www-form-urlencoded             # default
+          - multipart/form-data                           # default
+
 
   data:
     r2dbc:

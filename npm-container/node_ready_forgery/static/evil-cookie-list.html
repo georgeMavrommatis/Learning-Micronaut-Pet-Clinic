@@ -1,0 +1,79 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Cookie Logger (this origin only)</title>
+    <style>
+        body { font-family: system-ui, sans-serif; margin: 1rem; max-width: 900px; }
+        pre  { background: #f6f8fa; padding: .75rem; border-radius: 8px; white-space: pre-wrap; }
+        input, button { padding: .4rem .6rem; }
+    </style>
+</head>
+<body>
+<h1>🍪 Cookie Logger</h1>
+<p>
+    Logs cookies visible to <code>document.cookie</code> on <strong>this</strong> origin
+    (<code><span id="origin"></span></code>). Cookies for other hosts (e.g. <code>127.0.0.1</code>)
+    or with <code>HttpOnly</code> will not show up here.
+</p>
+
+<div>
+    <label>Filter by name (optional):
+        <input id="filter" placeholder="e.g. CSRF-TOKEN">
+    </label>
+    <button id="refresh">Refresh</button>
+</div>
+
+<pre id="out">Loading…</pre>
+
+<script>
+    document.getElementById('origin').textContent = location.origin;
+
+    function parseCookies() {
+      const jar = {};
+      const raw = document.cookie || '';
+      if (!raw) return jar;
+      for (const pair of raw.split(/; */)) {
+        const i = pair.indexOf('=');
+        if (i < 0) continue;
+        const k = decodeURIComponent(pair.slice(0, i));
+        const v = decodeURIComponent(pair.slice(i + 1));
+        jar[k] = v;
+      }
+      return jar;
+    }
+
+    function logCookies() {
+      const out = document.getElementById('out');
+      const filter = (document.getElementById('filter').value || '').trim();
+      const cookies = parseCookies();
+      const names = Object.keys(cookies).sort();
+      const filtered = filter ? names.filter(n => n.includes(filter)) : names;
+
+      const lines = [];
+      lines.push(`navigator.cookieEnabled: ${navigator.cookieEnabled}`);
+      lines.push(`Origin: ${location.origin}`);
+      lines.push(`Time: ${new Date().toISOString()}`);
+      lines.push('');
+
+      if (filtered.length === 0) {
+        lines.push('No JS-readable cookies for this origin.');
+        lines.push('- HttpOnly cookies never appear in document.cookie.');
+        lines.push('- Host-only rules apply: cookies for 127.0.0.1 are not visible on localhost (and vice versa).');
+      } else {
+        lines.push(`Found ${filtered.length} cookie(s):`);
+        for (const name of filtered) {
+          const val = cookies[name];
+          const sample = val.length > 120 ? val.slice(0, 120) + '…' : val;
+          lines.push(` • ${name} = ${sample} (len=${val.length})`);
+        }
+      }
+
+      out.textContent = lines.join('\n');
+    }
+
+    document.getElementById('refresh').addEventListener('click', logCookies);
+    logCookies();
+</script>
+</body>
+</html>

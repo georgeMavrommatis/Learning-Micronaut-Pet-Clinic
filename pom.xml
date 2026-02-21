@@ -177,6 +177,20 @@
       <scope>compile</scope>
     </dependency>
 
+    <!--
+    Micronaut generates a CSRF token
+    The token is:
+        Stored in the HTTP session (or another configured repository)
+        Sent to the client (cookie or header)
+    For state-changing requests (POST, PUT, PATCH, DELETE):
+        The request must include the same CSRF token
+        Otherwise → 403 Forbidden
+    -->
+    <dependency>
+      <groupId>io.micronaut.security</groupId>
+      <artifactId>micronaut-security-csrf</artifactId>
+    </dependency>
+
     <dependency>
       <groupId>org.yaml</groupId>
       <artifactId>snakeyaml</artifactId>
