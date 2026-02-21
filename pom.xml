@@ -159,36 +159,15 @@
       <scope>compile</scope>
     </dependency>
 
-
-    <!--stateful (session-based) authentication.
-        Includes:
-          HTTP Session-based security
-          SessionAuthenticationProvider
-          SessionLoginHandler
-          SessionLogoutHandler
-          Storage of authentication info in:
-            Cookie-backed sessions
-            In-memory / Redis / JDBC (depending on session config)
-          SecuritySessionConfiguration
-          -->
-    <dependency>
-      <groupId>io.micronaut.security</groupId>
-      <artifactId>micronaut-security-session</artifactId>
-      <scope>compile</scope>
-    </dependency>
-
-    <!--
-    Micronaut generates a CSRF token
-    The token is:
-        Stored in the HTTP session (or another configured repository)
-        Sent to the client (cookie or header)
-    For state-changing requests (POST, PUT, PATCH, DELETE):
-        The request must include the same CSRF token
-        Otherwise → 403 Forbidden
+    <!--JWT (JSON Web Token) support into Micronaut Security
+        Accept Authorization: Bearer <token> headers
+        Validate JWTs (signature, expiration, claims)
+        Turn a valid JWT into a Micronaut Authentication object
     -->
     <dependency>
       <groupId>io.micronaut.security</groupId>
-      <artifactId>micronaut-security-csrf</artifactId>
+      <artifactId>micronaut-security-jwt</artifactId>
+      <scope>compile</scope>
     </dependency>
 
     <dependency>

@@ -25,3 +25,16 @@ CREATE TABLE IF NOT EXISTS petclinic.vet_specialties (
                   ON DELETE CASCADE, --  if a speciallty record is deleted then all relation rows are deleted automatically
   PRIMARY KEY (vet_id, specialty_id)
 );
+
+-- 4) CREATE refresh_tokens TABLE
+CREATE TABLE petclinic.refresh_tokens (
+  id           bigserial PRIMARY KEY,
+  token_hash   text UNIQUE NOT NULL,
+  username     text NOT NULL,
+  roles        text[] NULL,
+  attributes   jsonb,
+  created_at   timestamptz NOT NULL DEFAULT now(),
+  expires_at   timestamptz NULL,
+  revoked_at   timestamptz NULL,
+  used_at      timestamptz NULL
+);

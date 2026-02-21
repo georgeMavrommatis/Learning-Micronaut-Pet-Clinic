@@ -8,13 +8,11 @@
         </encoder>
     </appender>
 
-    <!-- CSRF internals -->
-    <logger name="io.micronaut.security.csrf" level="TRACE"/>
+
     <logger name="io.micronaut.http.server" level="DEBUG"/>
     <logger name="io.micronaut.security" level="TRACE"/>
     <logger name="io.micronaut.security.filters.SecurityFilter" level="TRACE"/>
     <logger name="io.micronaut.security.rules" level="TRACE"/>
-    <logger name="io.micronaut.security.session" level="TRACE"/>
 
     <root level="info">
         <appender-ref ref="STDOUT" />

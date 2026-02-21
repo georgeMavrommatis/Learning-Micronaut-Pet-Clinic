@@ -14,58 +14,35 @@ micronaut:
 #          allowed-methods: [ GET, POST, PUT, PATCH, DELETE, OPTIONS ]
 #          allowed-headers: [ Content-Type, X-CSRF-TOKEN, Authorization ]
           allow-credentials: true
-  session:
-    max-inactive-interval: 30m     # 30 minutes
-    http:
-      #—— Cookie name (defaults to 'SESSION')
-      cookie-name: SESSION
-      #—— Path & domain
-      cookie-path: /
-      #—— Secure? (if true, cookie is only sent over HTTPS)
-      cookie-secure: true
-      #—— SameSite attribute: Strict, Lax or None
-      cookie-same-site: None
-      #login-success: /
-      login-failure: /login
-      #—— Alternatively, we can pull the session ID from headers instead of cookies:
-      # header-names: X-SESSION-ID
+
   security:
     enabled: true                 # turn on the security module outright
     #Reference: https://micronaut-projects.github.io/micronaut-security/latest/guide/#builtInHandlers
-    # use HTTP session auth
-    authentication: session
+    # use Authentication Mode Bearer
+    authentication: bearer
     endpoints:
       login:
         enabled: true       #by default is true when security session is enabled
         post-content-types:
           - application/json
-      logout:
-        enabled: true       #by default is true when security session is enabled
     intercept-url-map:
       - pattern: /login
         access: isAnonymous()   # allow unauthenticated clients to hit /login
-      - pattern: /logout
-        access: isAuthenticated()
       - pattern: /**
         access: isAuthenticated()
-
-    #reference https://micronaut-projects.github.io/micronaut-security/latest/guide/#io.micronaut.security.csrf.CsrfConfigurationProperties
-    #With session auth this will be stored under attributes of the SESSION /login authentication cookie produced.
-    csrf:
-      enabled: true
-      # Signed double-submit cookie token (so no server session is required)
-      signature-key: "c22ab2e27f1e41f29584c91d7a7e73fa6170d451dd45a8b7968d91f2f826ba6e"
-      # How the client sends/we read the token
-      header-name: X-CSRF-TOKEN        # default is X-CSRF-TOKEN
-      field-name: ""                 # disable form field resolver (set to empty)
-      #reference https://micronaut-projects.github.io/micronaut-security/latest/guide/#io.micronaut.security.csrf.filter.CsrfFilterConfigurationProperties
-      cookie-name: CSRF-TOKEN
-      # Enable csrf only for the following:
-      filter:
-        methods: [ POST, PUT, PATCH, DELETE ]              # default
-        content-types:
-          - application/x-www-form-urlencoded             # default
-          - multipart/form-data                           # default
+    token:
+      jwt:
+        #REFERENCE https://guides.micronaut.io/latest/micronaut-security-jwt-maven-java.html
+        signatures:
+          secret:
+            generator:
+              secret: ${JWT_GENERATOR_SIGNATURE_SECRET:pleaseChangeThisSecretForANewOne}
+        generator:
+          refresh-token:
+            secret: pleaseChangeThisSecretForANewOne
+      generator:
+        access-token:
+          expiration: 1800 #Set expiration to 30 minutes
 
 
   data:

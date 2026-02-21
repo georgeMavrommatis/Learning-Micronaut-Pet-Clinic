@@ -1,10 +1,10 @@
 {
   "info": {
-    "_postman_id": "0b9b7faf-816f-4de1-bafc-a7444ae43e75",
+    "_postman_id": "782cf978-679f-4645-ae84-69b5e886b843",
     "name": "Micronaut learning",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "11550685",
-    "_collection_link": "https://go.postman.co/collection/11550685-0b9b7faf-816f-4de1-bafc-a7444ae43e75?source=collection_link"
+    "_collection_link": "https://go.postman.co/collection/11550685-782cf978-679f-4645-ae84-69b5e886b843?source=collection_link"
   },
   "item": [
     {
@@ -4215,34 +4215,6 @@
       "name": "19- security session auth with csrf",
       "item": [
         {
-          "name": "PetClinic Copy",
-          "item": [
-            {
-              "name": "get pet-clinic details",
-              "request": {
-                "auth": {
-                  "type": "noauth"
-                },
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "http://localhost:8080/pet-clinic/details",
-                  "protocol": "http",
-                  "host": [
-                    "localhost"
-                  ],
-                  "port": "8080",
-                  "path": [
-                    "pet-clinic",
-                    "details"
-                  ]
-                }
-              },
-              "response": []
-            }
-          ]
-        },
-        {
           "name": "Authorizaton",
           "item": [
             {
@@ -4368,7 +4340,7 @@
                 "header": [
                   {
                     "key": "X-CSRF-TOKEN",
-                    "value": "TZ-Uzb76hDKXAZox5z3tDGD1XQGwu07LXk1nrSc8tPo.bU4-aUdSPdGV0qUgGjitng",
+                    "value": "lZN9f0hgBv9NGBZB6OGY9ZxMV0c0eDt2JVStuZxXT_0.DZI0aW9p_tyBLaTr1A-1ng",
                     "type": "text"
                   }
                 ],
@@ -4562,6 +4534,365 @@
                   "path": [
                     "pet-clinic",
                     "details"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "20 -authentication-bearer-jwt",
+      "item": [
+        {
+          "name": "PetClinic",
+          "item": [
+            {
+              "name": "get pet-clinic details",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{JWT_TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "http://localhost:8080/pet-clinic/details",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "8080",
+                  "path": [
+                    "pet-clinic",
+                    "details"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Authorizaton",
+          "item": [
+            {
+              "name": "login",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "let body;\r",
+                      "try { body = pm.response.json(); } catch (e) { body = null; }\r",
+                      "\r",
+                      "const at = body && body.access_token;\r",
+                      "if (at != null && String(at).trim() !== '') {\r",
+                      "  pm.environment.set('JWT_TOKEN', at);\r",
+                      "}\r",
+                      "\r",
+                      "const rt = body && body.refresh_token;\r",
+                      "if (rt != null && String(rt).trim() !== '') {\r",
+                      "  pm.environment.set('JWT_REFRESH_TOKEN', rt);\r",
+                      "}\r",
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "noauth"
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "X-CSRF-TOKEN",
+                    "value": ".raDHXxEJD0w2PZeqpVQ0qg",
+                    "type": "text",
+                    "disabled": true
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"username\":\"alice\",\r\n    \"password\":\"alice@1\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "http://localhost:8080/login",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "8080",
+                  "path": [
+                    "login"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "login Copy",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "let body;\r",
+                      "try { body = pm.response.json(); } catch (e) { body = null; }\r",
+                      "\r",
+                      "const at = body && body.access_token;\r",
+                      "if (at != null && String(at).trim() !== '') {\r",
+                      "  pm.environment.set('JWT_TOKEN', at);\r",
+                      "}\r",
+                      "\r",
+                      "const rt = body && body.refresh_token;\r",
+                      "if (rt != null && String(rt).trim() !== '') {\r",
+                      "  pm.environment.set('JWT_REFRESH_TOKEN', rt);\r",
+                      "}\r",
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "noauth"
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "X-CSRF-TOKEN",
+                    "value": ".raDHXxEJD0w2PZeqpVQ0qg",
+                    "type": "text",
+                    "disabled": true
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"username\":\"alice\",\r\n    \"password\":\"alice@1\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "http://localhost:8080/login",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "8080",
+                  "path": [
+                    "login"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "claims",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{JWT_TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "http://localhost:8080/admin/claims",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "8080",
+                  "path": [
+                    "admin",
+                    "claims"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "token-debug",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{JWT_TOKEN}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "http://localhost:8080/admin/token-debug",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "8080",
+                  "path": [
+                    "admin",
+                    "token-debug"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "refresh_token",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "let body;\r",
+                      "try { body = pm.response.json(); } catch (e) { body = null; }\r",
+                      "\r",
+                      "const at = body && body.access_token;\r",
+                      "if (at != null && String(at).trim() !== '') {\r",
+                      "  pm.environment.set('JWT_TOKEN', at);\r",
+                      "}\r",
+                      "\r",
+                      "const rt = body && body.refresh_token;\r",
+                      "if (rt != null && String(rt).trim() !== '') {\r",
+                      "  pm.environment.set('JWT_REFRESH_TOKEN', rt);\r",
+                      "}\r",
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "noauth"
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "X-CSRF-TOKEN",
+                    "value": ".raDHXxEJD0w2PZeqpVQ0qg",
+                    "type": "text",
+                    "disabled": true
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"grant_type\":\"refresh_token\",\r\n    \"refresh_token\":\"{{JWT_REFRESH_TOKEN}}\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "http://localhost:8080/oauth/access_token",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "8080",
+                  "path": [
+                    "oauth",
+                    "access_token"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "login bob VIEW",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "let body;\r",
+                      "try { body = pm.response.json(); } catch (e) { body = null; }\r",
+                      "\r",
+                      "const at = body && body.access_token;\r",
+                      "if (at != null && String(at).trim() !== '') {\r",
+                      "  pm.environment.set('JWT_TOKEN', at);\r",
+                      "}\r",
+                      "\r",
+                      "const rt = body && body.refresh_token;\r",
+                      "if (rt != null && String(rt).trim() !== '') {\r",
+                      "  pm.environment.set('JWT_REFRESH_TOKEN', rt);\r",
+                      "}\r",
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "noauth"
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"username\":\"bob\",\r\n    \"password\":\"bob@2\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "http://localhost:8080/login",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "8080",
+                  "path": [
+                    "login"
                   ]
                 }
               },
