@@ -44,4 +44,14 @@ public interface RefreshTokenRepository
        where token_hash = :hash and used_at is null
       """)
   Publisher<Long> markUsed(String hash);
+
+  @Query(
+      """
+  update petclinic.refresh_tokens
+     set used_at = coalesce(used_at, now()),
+         revoked_at = now()
+   where attributes->>'jti' = :jti
+     and (revoked_at is null or used_at is null)
+  """)
+  Publisher<Long> revokeByJtiInAttributes(String jti);
 }

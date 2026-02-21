@@ -38,3 +38,17 @@ CREATE TABLE petclinic.refresh_tokens (
   revoked_at   timestamptz NULL,
   used_at      timestamptz NULL
 );
+
+-- 5) CREATE access_tokens TABLE
+CREATE TABLE IF NOT EXISTS petclinic.access_tokens (
+  id          BIGSERIAL PRIMARY KEY,
+  username    TEXT        NOT NULL,
+  jti         TEXT        NULL,                            -- optional, but recommended
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+  expires_at  TIMESTAMPTZ NOT NULL,                        -- from JWT exp
+  revoked     BOOLEAN     NOT NULL DEFAULT false,
+  CONSTRAINT access_tokens_expires_after_created
+    CHECK (expires_at > created_at)
+);
+
+
