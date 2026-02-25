@@ -74,22 +74,33 @@ public class VetRelated {
   /**
    * The set of specialties assigned to this veterinarian.
    *
-   * <p>Represents the owning side of a many-to-many relationship between vets and specialties. The
-   * association is materialized in the {@code petclinic.vet_specialties} join table with {@code
-   * vet_id} and {@code specialty_id} join columns.
+   * <p>Represents the <strong>owning side</strong> of a many-to-many relationship between
+   * veterinarians and specialties. The association is materialized in the
+   * {@code petclinic.vet_specialties} join table using {@code vet_id} and
+   * {@code specialty_id} columns.
    *
-   * <p>Cascade options include {@code PERSIST} and {@code UPDATE} to propagate saves/updates to
-   * associated {@code SpecialtyRelated} entities. Choose cascade behavior carefully — using {@code
-   * Cascade.ALL} will also propagate removals, which may not be desired for shared lookup/reference
-   * entities like specialties.
+   * <p>This side controls the join table and is therefore responsible for inserting and
+   * updating relationship rows when a veterinarian is created or modified.
    *
-   * <p>The collection is initialized to an empty {@link HashSet} to avoid {@code
-   * NullPointerException} when iterating or adding elements. For bidirectional consistency, ensure
-   * updates are mirrored on the inverse side (the {@code SpecialtyRelated.vets} collection) when
-   * modifying relationships.
+   * <p>The collection is initialized to an empty {@link HashSet} to avoid {@link
+   * NullPointerException} when iterating or adding elements.
    *
-   * <p>Be cautious with JSON serialization: large or cyclic graphs may cause expensive
-   * serialization or recursion issues. Use DTOs or explicit fetch strategies for API responses.
+   * <p>Only {@code UPDATE} cascade is enabled. In this domain, {@code SpecialtyRelated}
+   * entities are treated as <strong>pre-existing, shared reference data</strong>.
+   *
+   * <p>When creating a new veterinarian, specialties are expected to already exist in the
+   * database. Persisting the veterinarian inserts rows into the join table, not new
+   * specialty records.
+   *
+   * <p>{@code PERSIST} is intentionally excluded to prevent accidental recreation or
+   * duplication of existing specialties. Using {@code Cascade.ALL} would also propagate
+   * removals, which is dangerous for shared lookup entities.
+   *
+   * <p>For bidirectional consistency, relationship changes should also be reflected on the
+   * inverse side ({@code SpecialtyRelated.vets}) when modifying associations.
+   *
+   * <p>Be cautious with JSON serialization. Many-to-many graphs can easily become large or
+   * cyclic. Use DTO mapping or explicit fetch strategies for API responses.
    *
    * @see Relation
    * @see JoinTable

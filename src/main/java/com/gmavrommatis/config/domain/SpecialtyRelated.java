@@ -59,16 +59,29 @@ public class SpecialtyRelated {
   /**
    * The set of veterinarians associated with this specialty.
    *
-   * <p>Represents the inverse side of a many-to-many relation between vets and specialties. The
-   * owning side is expected to be on {@code VetRelated} (mapped by {@code specialties}).
+   * <p>Represents the <strong>inverse side</strong> of a many-to-many relationship between
+   * veterinarians and specialties. The owning side of the association is defined on
+   * {@code VetRelated} via the {@code specialties} collection.
    *
-   * <p>The collection is initialized to an empty {@link HashSet} to avoid {@code
-   * NullPointerException} when iterating or adding elements. Because this is a bidirectional
-   * association, updates to this set should normally be mirrored on the owning side to keep both
-   * sides consistent.
+   * <p>This side does <strong>not control</strong> the join table; it exists primarily for
+   * navigation and consistency within the object model.
    *
-   * <p>Be cautious with serialization / lazy-loading: when sending entities across layers or over
-   * the wire, ensure the collection is handled appropriately (DTO mapping or explicit fetch).
+   * <p>The collection is initialized to an empty {@link HashSet} to avoid {@link
+   * NullPointerException} when iterating or adding elements.
+   *
+   * <p>Cascade options include {@code UPDATE} only. This allows synchronization of the
+   * association when the owning side updates the relationship, without attempting to
+   * persist or recreate {@code VetRelated} entities from this side.
+   *
+   * <p>{@code PERSIST} is intentionally avoided here because this entity is not responsible
+   * for the lifecycle of veterinarians. Specialty entities are treated as shared reference
+   * data, not aggregate roots that create vets.
+   *
+   * <p>As with any bidirectional association, updates should be mirrored on the owning side
+   * to keep both sides consistent.
+   *
+   * <p>Be cautious with serialization and lazy-loading. This collection should not be
+   * exposed directly in API responses; use DTOs or explicit fetch strategies instead.
    *
    * @see io.micronaut.data.annotation.Relation
    * @see VetRelated
